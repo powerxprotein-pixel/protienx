@@ -1,0 +1,60 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 240" width="200" height="240">
+  <defs>
+    <linearGradient id="bodyGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#064e3b"/>
+      <stop offset="50%" stop-color="#111827"/>
+      <stop offset="100%" stop-color="#064e3b"/>
+    </linearGradient>
+    <linearGradient id="lidGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#374151"/>
+      <stop offset="100%" stop-color="#18181b"/>
+    </linearGradient>
+    <linearGradient id="shine" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="rgba(255,255,255,0.2)"/>
+      <stop offset="30%" stop-color="rgba(255,255,255,0)"/>
+      <stop offset="70%" stop-color="rgba(255,255,255,0)"/>
+      <stop offset="100%" stop-color="rgba(255,255,255,0.15)"/>
+    </linearGradient>
+    <filter id="shadow" x="-10%" y="-10%" width="120%" height="130%">
+      <feDropShadow dx="0" dy="10" stdDeviation="8" flood-color="rgba(0,0,0,0.4)"/>
+    </filter>
+  </defs>
+  
+  <g filter="url(#shadow)">
+    <!-- Lid -->
+    <rect x="55" y="16" width="90" height="24" rx="5" fill="url(#lidGrad)"/>
+    <rect x="58" y="18" width="84" height="4" rx="2" fill="#4b5563"/>
+    <line x1="60" y1="26" x2="140" y2="26" stroke="#1f2937" stroke-width="1.5"/>
+
+    <!-- Neck -->
+    <rect x="62" y="38" width="76" height="8" fill="#1f2937"/>
+
+    <!-- Main Body -->
+    <path d="M 35 60 C 35 46, 50 46, 65 46 L 135 46 C 150 46, 165 46, 165 60 L 165 195 C 165 210, 155 215, 135 215 L 65 215 C 45 215, 35 210, 35 195 Z" fill="url(#bodyGrad)"/>
+    <path d="M 35 60 C 35 46, 50 46, 65 46 L 135 46 C 150 46, 165 46, 165 60 L 165 195 C 165 210, 155 215, 135 215 L 65 215 C 45 215, 35 210, 35 195 Z" fill="url(#shine)"/>
+    
+    <!-- Gold/Accent Trim Lines -->
+    <line x1="38" y1="58" x2="162" y2="58" stroke="#10b981" stroke-width="2"/>
+    <line x1="38" y1="202" x2="162" y2="202" stroke="#10b981" stroke-width="2"/>
+
+    <!-- Center Label Area -->
+    <rect x="42" y="66" width="116" height="126" rx="4" fill="rgba(15, 23, 42, 0.85)"/>
+    
+    <!-- Brand -->
+    <text x="100" y="88" fill="#10b981" font-family="Arial, sans-serif" font-size="12" font-weight="900" letter-spacing="2" text-anchor="middle">POWERX</text>
+    
+    <!-- Product Name -->
+    <text x="100" y="108" fill="#ffffff" font-family="Arial, sans-serif" font-size="13" font-weight="800" text-anchor="middle">PURE PEA</text>
+    
+    <!-- Metric Badge -->
+    <rect x="52" y="120" width="96" height="22" rx="4" fill="#10b981"/>
+    <text x="100" y="135" fill="#000000" font-family="Arial, sans-serif" font-size="10" font-weight="900" text-anchor="middle">28g PROTEIN</text>
+    
+    <!-- Subtitle -->
+    <text x="100" y="158" fill="#94a3b8" font-family="Arial, sans-serif" font-size="8.5" font-weight="600" text-anchor="middle">Raw Yellow Split</text>
+    
+    <!-- 100% Authentic Guarantee Badge -->
+    <circle cx="100" cy="178" r="7" fill="none" stroke="#10b981" stroke-width="1.5"/>
+    <text x="100" y="181" fill="#10b981" font-family="Arial, sans-serif" font-size="6" font-weight="bold" text-anchor="middle">100%</text>
+  </g>
+</svg>

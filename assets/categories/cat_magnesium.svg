@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 120" width="160" height="120">
+  <defs>
+    <filter id="catShadow">
+      <feDropShadow dx="0" dy="4" stdDeviation="4" flood-color="rgba(0,0,0,0.25)"/>
+    </filter>
+  </defs>
+  
+  <!-- Right Tub (Background layer) -->
+  <g filter="url(#catShadow)" transform="translate(68, 16)">
+    <rect x="16" y="0" width="48" height="12" rx="3" fill="#1e293b"/>
+    <rect x="5" y="12" width="70" height="84" rx="8" fill="#0284c7"/>
+    <rect x="10" y="28" width="60" height="54" rx="4" fill="rgba(0,0,0,0.7)"/>
+    <text x="40" y="46" fill="#38bdf8" font-family="Arial, sans-serif" font-size="9" font-weight="900" text-anchor="middle">PURE</text>
+    <rect x="15" y="54" width="50" height="12" rx="2" fill="#38bdf8"/>
+    <text x="40" y="63" fill="#000000" font-family="Arial, sans-serif" font-size="6.5" font-weight="bold" text-anchor="middle">PURE</text>
+  </g>
+
+  <!-- Left Tub (Foreground layer, slight overlap) -->
+  <g filter="url(#catShadow)" transform="translate(14, 24)">
+    <rect x="18" y="0" width="44" height="12" rx="3" fill="#0f172a"/>
+    <rect x="4" y="12" width="72" height="76" rx="8" fill="#1e1b4b"/>
+    <rect x="10" y="26" width="60" height="48" rx="4" fill="rgba(15,23,42,0.85)"/>
+    <text x="40" y="44" fill="#818cf8" font-family="Arial, sans-serif" font-size="9.5" font-weight="900" text-anchor="middle">MAG</text>
+    <rect x="15" y="50" width="50" height="12" rx="2" fill="#818cf8"/>
+    <text x="40" y="59" fill="#000000" font-family="Arial, sans-serif" font-size="7" font-weight="bold" text-anchor="middle">100% PRO</text>
+  </g>
+</svg>
