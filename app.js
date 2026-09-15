@@ -479,6 +479,8 @@ function handleLiveSyncUpdate(action, payload) {
     renderCategory4Cols();
   } else if (action === 'SETTINGS_UPDATED') {
     syncStoreSettings();
+  } else if (action === 'COMBOS_UPDATED') {
+    renderCombosSection();
   }
 }
 
@@ -501,6 +503,8 @@ window.addEventListener('storage', (e) => {
     handleLiveSyncUpdate('BANNERS_UPDATED');
   } else if (e.key === 'POWERX_CATEGORIES_STORAGE') {
     handleLiveSyncUpdate('CATEGORIES_UPDATED');
+  } else if (e.key === 'POWERX_COMBOS_STORAGE') {
+    handleLiveSyncUpdate('COMBOS_UPDATED');
   }
 });
 
@@ -523,6 +527,7 @@ document.addEventListener('DOMContentLoaded', () => {
   renderPerformanceProducts('proteins');
   renderVitaminsProducts('fish-oil');
   renderHealthFoodProducts('peanut-butter');
+  renderCombosSection();
   setupSearchAutocomplete();
   setupHamburgerDrawer();
   loadCartFromStorage();
@@ -848,6 +853,7 @@ function updateCartItemQty(index, delta) {
 function updateCartUI() {
   const badge = document.getElementById('cartBadge');
   const mobileTopBadge = document.getElementById('mobileTopCartBadge');
+  const mobileBottomBadge = document.getElementById('mobileBottomCartBadge');
   const countSpan = document.getElementById('cartDrawerCount');
   const container = document.getElementById('cartItemsContainer');
   const footer = document.getElementById('cartFooter');
@@ -855,6 +861,7 @@ function updateCartUI() {
   const totalItems = state.cart.reduce((sum, item) => sum + item.qty, 0);
   if (badge) badge.innerText = totalItems;
   if (mobileTopBadge) mobileTopBadge.innerText = totalItems;
+  if (mobileBottomBadge) mobileBottomBadge.innerText = totalItems;
   if (countSpan) countSpan.innerText = totalItems;
 
   if (state.cart.length === 0) {
@@ -1365,6 +1372,7 @@ async function handleAuthSignUp(e) {
       // Local fallback mode
       state.user = { email, user_metadata: { full_name: fullName, phone: phone } };
       localStorage.setItem('POWERX_LOCAL_USER', JSON.stringify(state.user));
+      registerCustomerInStorage(fullName, email, phone);
       updateAuthUI(state.user);
       showAuthAlert('Account created successfully!', 'success');
       setTimeout(() => {
@@ -1392,6 +1400,7 @@ async function handleAuthSignUp(e) {
 
     if (data && data.user) {
       state.user = data.user;
+      registerCustomerInStorage(fullName, email, phone);
       updateAuthUI(data.user);
 
       if (data.session) {
@@ -1754,5 +1763,180 @@ function searchTrackOrder() {
         </div>
       </div>
     `;
+  }
+}
+
+// ==========================================
+// CUSTOMER REGISTRATION STORAGE SYNC FOR ADMIN
+// ==========================================
+function registerCustomerInStorage(name, email, phone) {
+  try {
+    const raw = localStorage.getItem('POWERX_CUSTOMERS_STORAGE');
+    let customers = raw ? JSON.parse(raw) : [];
+    const emailNorm = (email || '').trim().toLowerCase();
+    const existing = customers.find(c => (c.email || '').trim().toLowerCase() === emailNorm);
+    if (!existing) {
+      const newCustomer = {
+        id: 'CUST-' + Math.floor(1000 + Math.random() * 9000),
+        name: name || 'Athlete Member',
+        email: email,
+        phone: phone || '+91 98200XXXXX',
+        address: 'Registered Member (Boisar Hub)',
+        totalOrders: 0,
+        totalSpend: 0,
+        createdAt: new Date().toISOString(),
+        isAccountUser: true
+      };
+      customers.unshift(newCustomer);
+      localStorage.setItem('POWERX_CUSTOMERS_STORAGE', JSON.stringify(customers));
+      if (liveSyncChannel) {
+        liveSyncChannel.postMessage({ action: 'CUSTOMERS_UPDATED', payload: newCustomer, timestamp: Date.now() });
+      }
+    }
+  } catch(e) {
+    console.error('Failed to register customer in storage:', e);
+  }
+}
+
+// ==========================================
+// POWERX VALUE COMBOS & GYM STACKS
+// ==========================================
+const DEFAULT_COMBOS = [
+  {
+    id: 'combo-pb-fishoil-creatine',
+    title: 'Peanut Butter + Fish Oil + Creatine Trio Stack',
+    subtitle: 'Daily Muscle & Health Essentials Bundle',
+    tag: 'Trio Pack',
+    badgeText: 'SAVE ₹1,124 (43% OFF)',
+    price: 1499,
+    mrp: 2623,
+    image: 'assets/brands/thumbnail_image-NB-PNT-1000-03-1785879623_clean.png',
+    items: [
+      {
+        name: 'Pintola All-Natural Peanut Butter (1 kg)',
+        image: 'assets/brands/thumbnail_image-NB-PNT-1000-03-1785879623_clean.png',
+        desc: '100% Roasted Peanuts (30g Protein)'
+      },
+      {
+        name: 'Dr. Morepen Triple Fish Oil (60 Softgels)',
+        image: 'assets/brands/thumbnail_image-NB-DRP-1052-01-1772523317-600x600_clean.png',
+        desc: '1250mg Deep-Sea Omega-3'
+      },
+      {
+        name: 'MuscleBlaze CreAMP™ Creatine (250 g)',
+        image: 'assets/brands/thumbnail_image-NB-BGM-1067-02-1500x1500_clean.png',
+        desc: '200 Mesh Ultra-Micronized (83 Servings)'
+      }
+    ],
+    highlights: [
+      'Pintola 1kg: Daily 30g natural protein & healthy fats',
+      'Dr. Morepen Fish Oil: Joint flexibility & heart support',
+      'MB Micronized Creatine: Maximum strength & explosive ATP'
+    ]
+  }
+];
+
+function getCombosData() {
+  try {
+    const raw = localStorage.getItem('POWERX_COMBOS_STORAGE');
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+    }
+  } catch(e) {}
+  localStorage.setItem('POWERX_COMBOS_STORAGE', JSON.stringify(DEFAULT_COMBOS));
+  return DEFAULT_COMBOS;
+}
+
+function renderCombosSection() {
+  const container = document.getElementById('combosGrid');
+  if (!container) return;
+
+  const combos = getCombosData();
+  if (combos.length === 0) {
+    container.innerHTML = `<div style="text-align:center; padding:20px; color:#64748b;">No active combos available right now.</div>`;
+    return;
+  }
+
+  container.innerHTML = combos.map(c => {
+    const savingsAmount = (c.mrp || 0) - (c.price || 0);
+    const savingsPct = c.mrp ? Math.round((savingsAmount / c.mrp) * 100) : 0;
+    
+    return `
+      <div class="combo-card" id="combo-${c.id}">
+        <div class="combo-card-badge-row">
+          <span class="combo-savings-tag">${c.badgeText || `SAVE ₹${savingsAmount.toLocaleString()} (${savingsPct}% OFF)`}</span>
+          <span class="combo-type-tag"><i class="fa-solid fa-leaf"></i> 100% Authentic</span>
+        </div>
+
+        <div class="combo-items-visual-row">
+          ${(c.items || []).map((item, idx) => `
+            <div class="combo-item-thumb-box" title="${escapeHtml(item.name)}">
+              <img src="${item.image}" alt="${escapeHtml(item.name)}" loading="lazy">
+            </div>
+            ${idx < (c.items.length - 1) ? '<div class="combo-plus-connector"><i class="fa-solid fa-plus"></i></div>' : ''}
+          `).join('')}
+        </div>
+
+        <h4 class="combo-title">${escapeHtml(c.title)}</h4>
+
+        <ul class="combo-items-breakdown">
+          ${(c.items || []).map(item => `
+            <li class="combo-item-row-desc">
+              <i class="fa-solid fa-circle-check"></i>
+              <span><strong>${escapeHtml(item.name)}</strong> ${item.desc ? `&bull; ${escapeHtml(item.desc)}` : ''}</span>
+            </li>
+          `).join('')}
+        </ul>
+
+        <div class="combo-price-block">
+          <div class="combo-price-left">
+            <span class="combo-main-price">₹${(c.price || 0).toLocaleString()}</span>
+            <span class="combo-mrp-price">₹${(c.mrp || 0).toLocaleString()}</span>
+          </div>
+          <span class="combo-discount-text">Save ₹${savingsAmount.toLocaleString()}</span>
+        </div>
+
+        <button class="btn-add-combo-cart" onclick="addComboToCart('${c.id}')">
+          <i class="fa-solid fa-cart-shopping"></i> Add Combo to Cart &bull; ₹${(c.price || 0).toLocaleString()}
+        </button>
+      </div>
+    `;
+  }).join('');
+}
+
+function addComboToCart(comboId) {
+  const combos = getCombosData();
+  const combo = combos.find(c => c.id === comboId);
+  if (!combo) return;
+
+  const existing = state.cart.find(c => c.productId === combo.id);
+  if (existing) {
+    existing.qty += 1;
+  } else {
+    state.cart.push({
+      productId: combo.id,
+      title: combo.title,
+      variantIdx: 0,
+      weight: combo.subtitle || 'Super Saver Bundle (3-in-1)',
+      price: combo.price,
+      image: (combo.items && combo.items[0]) ? combo.items[0].image : (combo.image || 'assets/pxp_logo_transparent.png'),
+      qty: 1,
+      isCombo: true
+    });
+  }
+
+  saveCartToStorage();
+  updateCartUI();
+  openToast(`Added "${combo.title}" to cart! 🎁`);
+}
+
+function scrollToCombos(e) {
+  if (e) e.preventDefault();
+  const el = document.getElementById('combos-section');
+  if (el) {
+    const yOffset = -70;
+    const y = el.getBoundingClientRect().top + window.pageYOffset + yOffset;
+    window.scrollTo({ top: y, behavior: 'smooth' });
   }
 }

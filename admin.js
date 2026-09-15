@@ -11,7 +11,8 @@ const STORAGE_KEYS = {
   ORDERS: 'POWERX_ORDERS_STORAGE',
   COUPONS: 'POWERX_COUPONS_STORAGE',
   SETTINGS: 'POWERX_SETTINGS_STORAGE',
-  CUSTOMERS: 'POWERX_CUSTOMERS_STORAGE'
+  CUSTOMERS: 'POWERX_CUSTOMERS_STORAGE',
+  COMBOS: 'POWERX_COMBOS_STORAGE'
 };
 
 // Default Banners Seed Data
@@ -663,6 +664,7 @@ function switchTab(tabId) {
     products: 'Product Catalog & Inventory',
     categories: 'Category Visuals & Cover Icons',
     banners: 'Homepage Hero & Ad Banners',
+    combos: 'Value Combos & Stacks',
     coupons: 'Promotions & Coupons',
     customers: 'Customer Directory',
     settings: 'Store Configuration'
@@ -689,6 +691,9 @@ function renderCurrentTab() {
       break;
     case 'banners':
       renderBannerManager();
+      break;
+    case 'combos':
+      renderCombosAdmin();
       break;
     case 'coupons':
       renderCoupons();
@@ -1946,36 +1951,185 @@ function deleteCoupon(idx) {
 }
 
 // ==========================================================================
-// 5. CUSTOMERS DIRECTORY MODULE
+// 4.5. VALUE COMBOS & BUNDLES MANAGEMENT
 // ==========================================================================
+function getAdminCombos() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEYS.COMBOS);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+    }
+  } catch(e) {}
+  return [];
+}
+
+function renderCombosAdmin() {
+  const tbody = document.getElementById('combosTableTbody');
+  if (!tbody) return;
+
+  const combos = getAdminCombos();
+  if (combos.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; padding:24px; color:var(--text-dim);">No combos created yet. Click "+ Create New Combo" to add one!</td></tr>`;
+    return;
+  }
+
+  tbody.innerHTML = combos.map((c, idx) => {
+    const savings = (c.mrp || 0) - (c.price || 0);
+    return `
+      <tr>
+        <td>
+          <div style="font-weight:700; color:var(--text-main);">${escapeHtml(c.title)}</div>
+          <div style="font-size:0.75rem; color:var(--text-dim); margin-top:2px;">${escapeHtml(c.subtitle || '')}</div>
+          <div style="font-size:0.75rem; color:var(--text-muted); margin-top:4px;">
+            ${(c.items || []).map(item => `&bull; ${escapeHtml(item.name || item)}`).join(' ')}
+          </div>
+        </td>
+        <td><strong style="color:var(--admin-primary); font-size:0.95rem;">₹${(c.price || 0).toLocaleString()}</strong></td>
+        <td><span style="text-decoration:line-through; color:var(--text-dim);">₹${(c.mrp || 0).toLocaleString()}</span></td>
+        <td><span class="status-pill delivered">${escapeHtml(c.badgeText || `Save ₹${savings.toLocaleString()}`)}</span></td>
+        <td>
+          <button class="btn-table-action delete" title="Delete Combo" onclick="deleteComboAdmin(${idx})">
+            <i class="fa-solid fa-trash"></i>
+          </button>
+        </td>
+      </tr>
+    `;
+  }).join('');
+}
+
+function openAddComboModal() {
+  document.getElementById('comboTitle').value = '';
+  document.getElementById('comboSubtitle').value = '';
+  document.getElementById('comboPrice').value = '';
+  document.getElementById('comboMrp').value = '';
+  document.getElementById('comboBadge').value = '';
+  document.getElementById('comboItemsText').value = '';
+  const modal = document.getElementById('comboFormModal');
+  if (modal) modal.classList.add('show');
+}
+
+function closeComboFormModal() {
+  const modal = document.getElementById('comboFormModal');
+  if (modal) modal.classList.remove('show');
+}
+
+function saveComboForm() {
+  const title = document.getElementById('comboTitle').value.trim();
+  const subtitle = document.getElementById('comboSubtitle').value.trim();
+  const price = parseInt(document.getElementById('comboPrice').value) || 0;
+  const mrp = parseInt(document.getElementById('comboMrp').value) || 0;
+  const badge = document.getElementById('comboBadge').value.trim();
+  const itemsText = document.getElementById('comboItemsText').value.trim();
+
+  if (!title || price <= 0) {
+    alert('Please enter a valid combo title and bundle price.');
+    return;
+  }
+
+  const items = itemsText.split('\n').filter(l => l.trim().length > 0).map(line => {
+    const cleanName = line.trim().replace(/^[•\-\*]\s*/, '');
+    let itemImg = 'assets/brands/thumbnail_image-NB-PNT-1000-03-1785879623_clean.png';
+    if (cleanName.toLowerCase().includes('fish') || cleanName.toLowerCase().includes('oil') || cleanName.toLowerCase().includes('omega')) {
+      itemImg = 'assets/brands/thumbnail_image-NB-DRP-1052-01-1772523317-600x600_clean.png';
+    } else if (cleanName.toLowerCase().includes('creatine')) {
+      itemImg = 'assets/brands/thumbnail_image-NB-BGM-1067-02-1500x1500_clean.png';
+    } else if (cleanName.toLowerCase().includes('whey') || cleanName.toLowerCase().includes('protein')) {
+      itemImg = 'assets/brands/variant-28977-featured_image-Nakpro_Gold_100_Whey_Protein_Concentrate_Supplement_Powder__1kg_double_rich_chocolate_clean.png';
+    }
+    return { name: cleanName, image: itemImg };
+  });
+
+  const newCombo = {
+    id: 'combo-' + Date.now(),
+    title,
+    subtitle: subtitle || 'Curated PowerX Bundle',
+    price,
+    mrp: mrp > price ? mrp : Math.round(price * 1.4),
+    badgeText: badge || `SAVE ₹${((mrp || Math.round(price * 1.4)) - price).toLocaleString()}`,
+    items: items.length > 0 ? items : [{ name: title, image: 'assets/brands/thumbnail_image-NB-PNT-1000-03-1785879623_clean.png' }]
+  };
+
+  const combos = getAdminCombos();
+  combos.push(newCombo);
+  localStorage.setItem(STORAGE_KEYS.COMBOS, JSON.stringify(combos));
+  broadcastLiveSync('COMBOS_UPDATED', combos);
+
+  closeComboFormModal();
+  renderCombosAdmin();
+  showAdminToast(`Combo "${title}" published live!`);
+}
+
+function deleteComboAdmin(idx) {
+  const combos = getAdminCombos();
+  if (!combos[idx]) return;
+  if (!confirm(`Delete combo "${combos[idx].title}"?`)) return;
+
+  combos.splice(idx, 1);
+  localStorage.setItem(STORAGE_KEYS.COMBOS, JSON.stringify(combos));
+  broadcastLiveSync('COMBOS_UPDATED', combos);
+  renderCombosAdmin();
+  showAdminToast('Combo removed.');
+}
+
+// ==========================================
+// 5. CUSTOMERS DIRECTORY MODULE (MERGES REGISTERED USERS & ORDERS)
+// ==========================================
 function renderCustomers() {
   const tbody = document.getElementById('customersTableTbody');
   if (!tbody) return;
 
-  // Aggregate unique customers from all orders
   const customerMap = {};
 
+  // 1. Load all registered user accounts from storefront sign-ups
+  try {
+    const rawCust = localStorage.getItem(STORAGE_KEYS.CUSTOMERS);
+    if (rawCust) {
+      const storedCustomers = JSON.parse(rawCust);
+      if (Array.isArray(storedCustomers)) {
+        storedCustomers.forEach(c => {
+          const key = (c.email || c.phone || c.name).trim().toLowerCase();
+          customerMap[key] = {
+            name: c.name || 'Member Athlete',
+            phone: c.phone || 'N/A',
+            email: c.email || 'N/A',
+            address: c.address || 'Registered Member (Boisar)',
+            totalOrders: c.totalOrders || 0,
+            totalSpend: c.totalSpend || 0,
+            lastOrderDate: c.createdAt || new Date().toISOString(),
+            isAccount: true
+          };
+        });
+      }
+    }
+  } catch (e) { console.error(e); }
+
+  // 2. Aggregate orders placed by customers
   AdminState.orders.forEach(o => {
-    const key = (o.customer.phone || o.customer.email || o.customer.name).trim().toLowerCase();
+    if (!o.customer) return;
+    const key = (o.customer.email || o.customer.phone || o.customer.name).trim().toLowerCase();
     if (!customerMap[key]) {
       customerMap[key] = {
-        name: o.customer.name,
-        phone: o.customer.phone,
+        name: o.customer.name || 'Customer',
+        phone: o.customer.phone || 'N/A',
         email: o.customer.email || 'N/A',
-        address: o.customer.address || 'Standard Address',
+        address: o.customer.address || 'Standard Delivery Address',
         totalOrders: 0,
         totalSpend: 0,
-        lastOrderDate: o.createdAt
+        lastOrderDate: o.createdAt || new Date().toISOString(),
+        isAccount: false
       };
     }
     customerMap[key].totalOrders += 1;
     customerMap[key].totalSpend += (o.total || 0);
+    if (o.customer.address) customerMap[key].address = o.customer.address;
+    if (o.customer.phone && customerMap[key].phone === 'N/A') customerMap[key].phone = o.customer.phone;
   });
 
   const customersList = Object.values(customerMap);
 
   if (customersList.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; padding:24px; color:var(--text-dim);">No customer purchase history yet.</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; padding:24px; color:var(--text-dim);">No registered users or order history yet.</td></tr>`;
     return;
   }
 
@@ -1983,12 +2137,15 @@ function renderCustomers() {
     <tr>
       <td>
         <div style="display:flex; align-items:center; gap:10px;">
-          <div style="width:34px; height:34px; border-radius:50%; background:linear-gradient(135deg, var(--admin-accent-blue), var(--admin-accent-purple)); display:flex; align-items:center; justify-content:center; font-weight:800; color:#fff; font-size:0.82rem;">
+          <div style="width:34px; height:34px; border-radius:50%; background:linear-gradient(135deg, #dc2626, #b91c1c); display:flex; align-items:center; justify-content:center; font-weight:800; color:#fff; font-size:0.82rem;">
             ${escapeHtml(c.name.charAt(0).toUpperCase())}
           </div>
           <div>
-            <div style="font-weight:700; color:#fff;">${escapeHtml(c.name)}</div>
-            <div style="font-size:0.72rem; color:var(--text-dim);">${escapeHtml(c.email)}</div>
+            <div style="font-weight:700; color:var(--text-main); display:flex; align-items:center; gap:6px;">
+              ${escapeHtml(c.name)}
+              ${c.isAccount ? '<span style="font-size:0.65rem; background:#fee2e2; color:#dc2626; padding:1px 6px; border-radius:4px; font-weight:700;">Account</span>' : ''}
+            </div>
+            <div style="font-size:0.75rem; color:var(--text-dim);">${escapeHtml(c.email)}</div>
           </div>
         </div>
       </td>
@@ -1997,9 +2154,11 @@ function renderCustomers() {
       <td><span class="status-pill delivered" style="font-size:0.75rem;">${c.totalOrders} order(s)</span></td>
       <td><strong style="color:var(--admin-accent-green);">₹${c.totalSpend.toLocaleString()}</strong></td>
       <td>
-        <button class="btn-table-action" title="Send WhatsApp Offer" onclick="window.open('https://api.whatsapp.com/send?phone=${encodeURIComponent(c.phone)}&text=Hi%20${encodeURIComponent(c.name)},%20PowerX%20Protein%20Hub%20has%20an%20exclusive%20discount%20for%20you!')">
-          <i class="fa-brands fa-whatsapp" style="color:#22c55e;"></i>
-        </button>
+        ${c.phone && c.phone !== 'N/A' ? `
+          <button class="btn-table-action" title="Send WhatsApp Offer" onclick="window.open('https://api.whatsapp.com/send?phone=${encodeURIComponent(c.phone.replace(/[^0-9]/g, ''))}&text=Hi%20${encodeURIComponent(c.name)},%20PowerX%20Protein%20Hub%20has%20an%20exclusive%20discount%20for%20you!')">
+            <i class="fa-brands fa-whatsapp" style="color:#22c55e;"></i>
+          </button>
+        ` : '<span style="font-size:0.75rem; color:var(--text-dim);">-</span>'}
       </td>
     </tr>
   `).join('');

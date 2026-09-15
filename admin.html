@@ -110,6 +110,10 @@
           <i class="fa-solid fa-rectangle-ad"></i>
           <span>Homepage Banners</span>
         </a>
+        <a href="#combos" class="nav-item" data-tab="combos">
+          <i class="fa-solid fa-fire"></i>
+          <span>Value Combos</span>
+        </a>
         <a href="#coupons" class="nav-item" data-tab="coupons">
           <i class="fa-solid fa-tags"></i>
           <span>Coupons & Offers</span>
@@ -440,6 +444,37 @@
                 </button>
               </div>
             </div>
+          </div>
+        </section>
+
+        <!-- ========================================================
+             TAB: VALUE COMBOS & GYM STACKS
+             ======================================================== -->
+        <section class="admin-tab-pane" id="tab-combos">
+          <div class="table-filter-bar">
+            <div class="filter-group-left">
+              <span style="font-size:0.85rem; color:var(--text-muted);">Curated multi-item bundle stacks shown on storefront</span>
+            </div>
+            <div class="filter-group-right">
+              <button class="btn-primary-action" onclick="openAddComboModal()">
+                <i class="fa-solid fa-plus"></i> Create New Combo
+              </button>
+            </div>
+          </div>
+
+          <div class="table-responsive-wrapper">
+            <table class="admin-data-table">
+              <thead>
+                <tr>
+                  <th>Bundle Title &amp; Items</th>
+                  <th>Bundle Price</th>
+                  <th>Regular MRP</th>
+                  <th>Savings / Badge</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="combosTableTbody"></tbody>
+            </table>
           </div>
         </section>
 
@@ -861,6 +896,55 @@
       <div class="modal-footer">
         <button type="button" class="btn-secondary" onclick="closeCategoryFormModal()">Cancel</button>
         <button type="button" class="btn-primary-action" onclick="saveCategoryIconForm()">Save Category Icon</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- COMBO FORM MODAL -->
+  <div class="modal-backdrop" id="comboFormModal">
+    <div class="modal-window" style="max-width: 580px;">
+      <div class="modal-header">
+        <h3 class="modal-title" id="comboModalTitle">Add New Value Combo</h3>
+        <button class="modal-close" onclick="closeComboFormModal()"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group-full">
+          <label class="form-label">Combo Title</label>
+          <input type="text" id="comboTitle" class="form-control" placeholder="e.g. Peanut Butter + Fish Oil + Creatine Trio Stack">
+        </div>
+
+        <div class="form-group-full">
+          <label class="form-label">Subtitle / Description</label>
+          <input type="text" id="comboSubtitle" class="form-control" placeholder="e.g. Daily Muscle & Health Essentials Bundle">
+        </div>
+
+        <div class="form-grid-2">
+          <div>
+            <label class="form-label">Combo Special Price (₹)</label>
+            <input type="number" id="comboPrice" class="form-control" placeholder="1499">
+          </div>
+          <div>
+            <label class="form-label">Regular Combined MRP (₹)</label>
+            <input type="number" id="comboMrp" class="form-control" placeholder="2623">
+          </div>
+        </div>
+
+        <div class="form-group-full">
+          <label class="form-label">Promotional Badge Text</label>
+          <input type="text" id="comboBadge" class="form-control" placeholder="e.g. SAVE ₹1,124 (43% OFF)">
+        </div>
+
+        <div class="form-group-full">
+          <label class="form-label">Included Items Breakdown (One per line)</label>
+          <textarea id="comboItemsText" class="form-control" rows="4" placeholder="Pintola All-Natural Peanut Butter (1 kg)
+Dr. Morepen Triple Fish Oil (60 Softgels)
+MuscleBlaze CreAMP Creatine (250 g)"></textarea>
+          <span style="font-size:0.75rem; color:var(--text-dim); margin-top:4px; display:block;">Enter each product name on a new line to build the bundle trio.</span>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn-secondary" onclick="closeComboFormModal()">Cancel</button>
+        <button type="button" class="btn-primary-action" onclick="saveComboForm()">Save &amp; Publish Combo</button>
       </div>
     </div>
   </div>
