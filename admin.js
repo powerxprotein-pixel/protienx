@@ -53,7 +53,7 @@ const DEFAULT_CATEGORIES = {
 
 // Default Products Seed Data
 const DEFAULT_PRODUCTS = [
-  {
+{
     id: 'on-gold-standard-whey',
     title: 'Optimum Nutrition (ON) Gold Standard 100% Whey Protein',
     category: 'proteins',
@@ -163,6 +163,1356 @@ const DEFAULT_PRODUCTS = [
     ],
     nutrition: { protein: '30g', dietaryFiber: '6g', healthyFats: '48g', scoops: '31 Servings' },
     description: 'Premium roasted Gujarat peanuts infused with Belgian dark chocolate and whey protein isolate. 0 Added Sugar.'
+  },
+,
+
+  // ==========================================
+  // GYMBHAI NUTRITION DEALER RATE CARD (50 PRODUCTS)
+  // ==========================================
+  {
+      "id": "gn-anabolic-gainer-3kg",
+      "title": "Kevin Levrone Signature Series Anabolic Mass Gainer 3kg",
+      "category": "gainers",
+      "rating": 4.7,
+      "reviewsCount": 2420,
+      "isVeg": true,
+      "badgeText": "71% OFF",
+      "isBestseller": true,
+      "stock": 30,
+      "image": "assets/products/gn-anabolic-gainer-3kg.jpeg",
+      "variants": [
+          {
+              "weight": "3 kg (6.6 lb)",
+              "price": 1749,
+              "mrp": 5999,
+              "unitPrice": "₹58 / 100 g"
+          }
+      ],
+      "nutrition": {
+          "protein": "48g",
+          "carbs": "108g",
+          "calories": "680 kcal",
+          "daa": "1800mg"
+      },
+      "description": "High-calorie anabolic muscle mass gainer formulated with premium whey protein complex, creatine, D-Aspartic acid, and fenugreek extract for extreme mass building."
+  },
+  {
+      "id": "gn-anabolic-gainer-5kg",
+      "title": "Kevin Levrone Signature Series Anabolic Mass Gainer 5kg",
+      "category": "gainers",
+      "rating": 4.8,
+      "reviewsCount": 3890,
+      "isVeg": true,
+      "badgeText": "70% OFF",
+      "isBestseller": true,
+      "stock": 30,
+      "image": "assets/products/gn-anabolic-gainer-5kg.jpeg",
+      "variants": [
+          {
+              "weight": "5 kg (11 lb)",
+              "price": 2699,
+              "mrp": 8999,
+              "unitPrice": "₹54 / 100 g"
+          }
+      ],
+      "nutrition": {
+          "protein": "48g",
+          "carbs": "108g",
+          "calories": "680 kcal",
+          "daa": "1800mg"
+      },
+      "description": "Monster 5kg pack of high-calorie anabolic gainer. Designed for hardgainers looking for rapid lean muscle hypertrophy and explosive strength."
+  },
+  {
+      "id": "gn-hyper-gainer-3kg",
+      "title": "Hyper Gainer High Protein Mass Gainer 3kg",
+      "category": "gainers",
+      "rating": 4.6,
+      "reviewsCount": 1150,
+      "isVeg": true,
+      "badgeText": "64% OFF",
+      "isBestseller": false,
+      "stock": 30,
+      "image": "assets/products/gn-hyper-gainer-3kg.jpeg",
+      "variants": [
+          {
+              "weight": "3 kg (6.6 lb)",
+              "price": 1999,
+              "mrp": 5500,
+              "unitPrice": "₹67 / 100 g"
+          }
+      ],
+      "nutrition": {
+          "protein": "45g",
+          "carbs": "120g",
+          "calories": "720 kcal",
+          "bcaa": "6g"
+      },
+      "description": "Advanced hyper-calorie mass gainer engineered with complex carbohydrates, fast & slow absorbing proteins, and digestive enzymes for optimal muscle mass recovery."
+  },
+  {
+      "id": "gn-fuel-one-max-1kg",
+      "title": "MuscleBlaze Fuel One Max 100% Whey Protein 1kg",
+      "category": "proteins",
+      "rating": 4.6,
+      "reviewsCount": 1820,
+      "isVeg": true,
+      "badgeText": "15% OFF",
+      "isBestseller": false,
+      "stock": 30,
+      "image": "assets/products/gn-fuel-one-max-1kg.jpeg",
+      "variants": [
+          {
+              "weight": "1 kg (2.2 lb)",
+              "price": 2649,
+              "mrp": 3099,
+              "unitPrice": "₹265 / 100 g"
+          }
+      ],
+      "nutrition": {
+          "protein": "26g",
+          "bcaa": "5.6g",
+          "eaa": "11.9g",
+          "carbs": "2.2g"
+      },
+      "description": "Premium Fuel One Max whey protein with added digestive enzymes and high bio-availability. Delivers 26g of ultra-filtered protein per serving."
+  },
+  {
+      "id": "gn-fuel-one-1kg",
+      "title": "MuscleBlaze Fuel One 100% Whey Protein 1kg",
+      "category": "proteins",
+      "rating": 4.7,
+      "reviewsCount": 4210,
+      "isVeg": true,
+      "badgeText": "30% OFF",
+      "isBestseller": true,
+      "stock": 30,
+      "image": "assets/products/gn-fuel-one-1kg.jpeg",
+      "variants": [
+          {
+              "weight": "1 kg (2.2 lb)",
+              "price": 2099,
+              "mrp": 2999,
+              "unitPrice": "₹210 / 100 g"
+          }
+      ],
+      "nutrition": {
+          "protein": "24g",
+          "bcaa": "5.29g",
+          "glutamicAcid": "4.2g",
+          "carbs": "3g"
+      },
+      "description": "India's trusted everyday whey protein. 24g pure whey protein per scoop with zero added sugar and 100% authentic NABL lab-tested certification."
+  },
+  {
+      "id": "gn-atom-whey-1kg",
+      "title": "AS-IT-IS ATOM 100% Whey Protein with Enzymes 1kg",
+      "category": "proteins",
+      "rating": 4.7,
+      "reviewsCount": 8600,
+      "isVeg": true,
+      "badgeText": "21% OFF",
+      "isBestseller": true,
+      "stock": 30,
+      "image": "assets/products/gn-atom-whey-1kg.jpeg",
+      "variants": [
+          {
+              "weight": "1 kg (2.2 lb)",
+              "price": 1999,
+              "mrp": 2516,
+              "unitPrice": "₹200 / 100 g"
+          }
+      ],
+      "nutrition": {
+          "protein": "27g",
+          "bcaa": "5.7g",
+          "glutamine": "4.5g",
+          "carbs": "2g"
+      },
+      "description": "ATOM Whey Protein is a performance-driven blend of whey isolate and concentrate with 27g protein per scoop and digestive enzymes for smooth digestion."
+  },
+  {
+      "id": "gn-atom-whey-xl-1kg",
+      "title": "AS-IT-IS ATOM Whey Protein XL High Performance 1kg",
+      "category": "proteins",
+      "rating": 4.6,
+      "reviewsCount": 2150,
+      "isVeg": true,
+      "badgeText": "43% OFF",
+      "isBestseller": false,
+      "stock": 30,
+      "image": "assets/products/gn-atom-whey-xl-1kg.jpeg",
+      "variants": [
+          {
+              "weight": "1 kg (2.2 lb)",
+              "price": 2199,
+              "mrp": 3861,
+              "unitPrice": "₹220 / 100 g"
+          }
+      ],
+      "nutrition": {
+          "protein": "28g",
+          "bcaa": "6.1g",
+          "eaa": "12.8g",
+          "creatine": "1.5g"
+      },
+      "description": "Upgraded ATOM XL formula packed with superior micro-filtered whey peptides, increased aminos, and enhanced muscle pump support."
+  },
+  {
+      "id": "gn-atom-pr-1kg",
+      "title": "AS-IT-IS ATOM PR Performance Series Whey Protein 1kg",
+      "category": "proteins",
+      "rating": 4.6,
+      "reviewsCount": 1640,
+      "isVeg": true,
+      "badgeText": "36% OFF",
+      "isBestseller": false,
+      "stock": 30,
+      "image": "assets/products/gn-atom-pr-1kg.jpeg",
+      "variants": [
+          {
+              "weight": "1 kg (2.2 lb)",
+              "price": 1999,
+              "mrp": 3115,
+              "unitPrice": "₹200 / 100 g"
+          }
+      ],
+      "nutrition": {
+          "protein": "25g",
+          "bcaa": "5.5g",
+          "eaa": "11.5g",
+          "carbs": "2.5g"
+      },
+      "description": "Engineered for hitting personal records (PR). Rapid-acting whey blend supporting intense training routines and swift muscle fiber restoration."
+  },
+  {
+      "id": "gn-avtaar-alpha-1kg",
+      "title": "Avvatar Alpha Series 100% Whey Protein 1kg",
+      "category": "proteins",
+      "rating": 4.7,
+      "reviewsCount": 3190,
+      "isVeg": true,
+      "badgeText": "Best Value",
+      "isBestseller": false,
+      "stock": 30,
+      "image": "assets/products/gn-avtaar-alpha-1kg.jpeg",
+      "variants": [
+          {
+              "weight": "1 kg (2.2 lb)",
+              "price": 2699,
+              "mrp": 2699,
+              "unitPrice": "₹270 / 100 g"
+          }
+      ],
+      "nutrition": {
+          "protein": "24g",
+          "bcaa": "5.4g",
+          "eaa": "11.2g",
+          "freshMilk": "100%"
+      },
+      "description": "Made from 100% fresh cow's milk processed within 24 hours. Packed with naturally occurring BCAAs and essential amino acids for pure muscle recovery."
+  },
+  {
+      "id": "gn-american-whey-1kg",
+      "title": "American Pure 100% Whey Protein Concentrate 1kg",
+      "category": "proteins",
+      "rating": 4.5,
+      "reviewsCount": 1280,
+      "isVeg": true,
+      "badgeText": "34% OFF",
+      "isBestseller": false,
+      "stock": 30,
+      "image": "assets/products/gn-american-whey-1kg.jpeg",
+      "variants": [
+          {
+              "weight": "1 kg (2.2 lb)",
+              "price": 2499,
+              "mrp": 3799,
+              "unitPrice": "₹250 / 100 g"
+          }
+      ],
+      "nutrition": {
+          "protein": "25g",
+          "bcaa": "5.8g",
+          "glutamicAcid": "4g",
+          "carbs": "2.8g"
+      },
+      "description": "Imported US-grade whey protein concentrate. Instantized powder that mixes effortlessly with water or milk without clumping."
+  },
+  {
+      "id": "gn-nutrabay-bio-1kg",
+      "title": "Nutrabay Pure Bio Whey Protein Concentrate 1kg",
+      "category": "proteins",
+      "rating": 4.8,
+      "reviewsCount": 5420,
+      "isVeg": true,
+      "badgeText": "23% OFF",
+      "isBestseller": true,
+      "stock": 30,
+      "image": "assets/products/gn-nutrabay-bio-1kg.jpeg",
+      "variants": [
+          {
+              "weight": "1 kg (2.2 lb)",
+              "price": 3299,
+              "mrp": 4299,
+              "unitPrice": "₹330 / 100 g"
+          }
+      ],
+      "nutrition": {
+          "protein": "26g",
+          "bcaa": "5.8g",
+          "eaa": "12.2g",
+          "digestiveEnzymes": "DigeZyme®"
+      },
+      "description": "Enhanced bio-absorption whey protein concentrate from Nutrabay. Enhanced with multi-enzyme complex DigeZyme for zero bloating."
+  },
+  {
+      "id": "gn-devisco-instant-1kg",
+      "title": "Devisco Instant 100% Whey Protein 1kg",
+      "category": "proteins",
+      "rating": 4.5,
+      "reviewsCount": 980,
+      "isVeg": true,
+      "badgeText": "30% OFF",
+      "isBestseller": false,
+      "stock": 30,
+      "image": "assets/products/gn-devisco-instant-1kg.jpeg",
+      "variants": [
+          {
+              "weight": "1 kg (2.2 lb)",
+              "price": 1399,
+              "mrp": 1999,
+              "unitPrice": "₹140 / 100 g"
+          }
+      ],
+      "nutrition": {
+          "protein": "24g",
+          "bcaa": "5.2g",
+          "glutamine": "4g",
+          "carbs": "3g"
+      },
+      "description": "Affordable instantized whey protein powder delivering 24g protein per scoop. Excellent solubility and delicious shake flavor."
+  },
+  {
+      "id": "gn-devisco-instant-2kg",
+      "title": "Devisco Instant 100% Whey Protein 2kg",
+      "category": "proteins",
+      "rating": 4.6,
+      "reviewsCount": 1450,
+      "isVeg": true,
+      "badgeText": "34% OFF",
+      "isBestseller": false,
+      "stock": 30,
+      "image": "assets/products/gn-devisco-instant-2kg.jpeg",
+      "variants": [
+          {
+              "weight": "2 kg (4.4 lb)",
+              "price": 2499,
+              "mrp": 3799,
+              "unitPrice": "₹125 / 100 g"
+          }
+      ],
+      "nutrition": {
+          "protein": "24g",
+          "bcaa": "5.2g",
+          "glutamine": "4g",
+          "carbs": "3g"
+      },
+      "description": "Value 2kg tub of Devisco Instant Whey. Provides 66 servings of high-grade muscle repair protein for budget-conscious fitness enthusiasts."
+  },
+  {
+      "id": "gn-gnc-whey-1kg",
+      "title": "GNC Pro Performance 100% Whey Protein 1kg",
+      "category": "proteins",
+      "rating": 4.8,
+      "reviewsCount": 6800,
+      "isVeg": true,
+      "badgeText": "53% OFF",
+      "isBestseller": true,
+      "stock": 30,
+      "image": "assets/products/gn-gnc-whey-1kg.jpeg",
+      "variants": [
+          {
+              "weight": "1 kg (2.2 lb)",
+              "price": 5500,
+              "mrp": 11699,
+              "unitPrice": "₹550 / 100 g"
+          }
+      ],
+      "nutrition": {
+          "protein": "24g",
+          "bcaa": "5.5g",
+          "glutamine": "4.5g",
+          "digestiveEnzymes": "Added"
+      },
+      "description": "World-renowned GNC Pro Performance Whey formulated with fast-digesting whey isolate & concentrate for accelerated lean muscle growth and recovery."
+  },
+  {
+      "id": "gn-mb-whey-2kg",
+      "title": "MuscleBlaze 100% Raw Whey Protein Concentrate 80% 2kg",
+      "category": "proteins",
+      "rating": 4.7,
+      "reviewsCount": 9200,
+      "isVeg": true,
+      "badgeText": "25% OFF",
+      "isBestseller": true,
+      "stock": 30,
+      "image": "assets/products/gn-mb-whey-2kg.jpeg",
+      "variants": [
+          {
+              "weight": "2 kg (4.4 lb)",
+              "price": 2999,
+              "mrp": 3999,
+              "unitPrice": "₹150 / 100 g"
+          }
+      ],
+      "nutrition": {
+          "protein": "24g",
+          "bcaa": "5.2g",
+          "glutamine": "4.2g",
+          "unflavored": "Pure 80%"
+      },
+      "description": "MuscleBlaze unflavored raw whey protein 80%. Zero added sugar, zero flavor chemicals, certified clean protein with labdoor authenticity."
+  },
+  {
+      "id": "gn-pintola-oats-1kg",
+      "title": "Pintola High Protein Rolled Oats 1kg",
+      "category": "oats",
+      "rating": 4.8,
+      "reviewsCount": 3410,
+      "isVeg": true,
+      "badgeText": "23% OFF",
+      "isBestseller": true,
+      "stock": 30,
+      "image": "assets/products/gn-pintola-oats-1kg.jpeg",
+      "variants": [
+          {
+              "weight": "1 kg (2.2 lb)",
+              "price": 479,
+              "mrp": 620,
+              "unitPrice": "₹48 / 100 g"
+          }
+      ],
+      "nutrition": {
+          "protein": "22g",
+          "fiber": "11g",
+          "wholegrain": "100%",
+          "calories": "390 kcal"
+      },
+      "description": "100% natural wholegrain rolled oats enriched with plant protein and dietary fiber for long-lasting morning workout energy."
+  },
+  {
+      "id": "gn-pintola-musli-1kg",
+      "title": "Pintola Dark Chocolate Protein Muesli 1kg",
+      "category": "oats",
+      "rating": 4.7,
+      "reviewsCount": 2180,
+      "isVeg": true,
+      "badgeText": "30% OFF",
+      "isBestseller": true,
+      "stock": 30,
+      "image": "assets/products/gn-pintola-musli-1kg.jpeg",
+      "variants": [
+          {
+              "weight": "1 kg (2.2 lb)",
+              "price": 499,
+              "mrp": 710,
+              "unitPrice": "₹50 / 100 g"
+          }
+      ],
+      "nutrition": {
+          "protein": "21g",
+          "fiber": "8g",
+          "almonds": "Real Nuts",
+          "cocoa": "Dark Chocolate"
+      },
+      "description": "Crispy toasted oats, rich dark chocolate, roasted almonds, and raisins. High-protein breakfast bowl to fuel your active fitness lifestyle."
+  },
+  {
+      "id": "gn-dc-oats-2kg",
+      "title": "DC High Protein Rolled Oats 2kg Value Pack",
+      "category": "oats",
+      "rating": 4.6,
+      "reviewsCount": 1120,
+      "isVeg": true,
+      "badgeText": "29% OFF",
+      "isBestseller": false,
+      "stock": 30,
+      "image": "assets/products/gn-dc-oats-2kg.jpeg",
+      "variants": [
+          {
+              "weight": "2 kg (4.4 lb)",
+              "price": 999,
+              "mrp": 1399,
+              "unitPrice": "₹50 / 100 g"
+          }
+      ],
+      "nutrition": {
+          "protein": "20g",
+          "fiber": "10g",
+          "complexCarbs": "65g",
+          "betaGlucan": "3g"
+      },
+      "description": "Large 2kg jumbo pack of premium rolled oats. Ideal for high-calorie bulking protein shakes, overnight oats, and gym meal prep."
+  },
+  {
+      "id": "gn-yogabar-oats-1kg",
+      "title": "Yogabar Dark Chocolate High Protein Oats 1kg",
+      "category": "oats",
+      "rating": 4.6,
+      "reviewsCount": 2840,
+      "isVeg": true,
+      "badgeText": "19% OFF",
+      "isBestseller": false,
+      "stock": 30,
+      "image": "assets/products/gn-yogabar-oats-1kg.jpeg",
+      "variants": [
+          {
+              "weight": "1 kg (2.2 lb)",
+              "price": 399,
+              "mrp": 490,
+              "unitPrice": "₹40 / 100 g"
+          }
+      ],
+      "nutrition": {
+          "protein": "20g",
+          "fiber": "9g",
+          "chiaSeeds": "Added",
+          "cocoa": "Natural Cocoa"
+      },
+      "description": "Loaded with roasted seeds, nuts, and cocoa. Yogabar protein oats provide sustained steady glycemic energy without added refined sugar."
+  },
+  {
+      "id": "gn-alpino-oats-1kg",
+      "title": "Alpino Super High Protein Rolled Oats 1kg",
+      "category": "oats",
+      "rating": 4.7,
+      "reviewsCount": 1950,
+      "isVeg": true,
+      "badgeText": "26% OFF",
+      "isBestseller": false,
+      "stock": 30,
+      "image": "assets/products/gn-alpino-oats-1kg.jpeg",
+      "variants": [
+          {
+              "weight": "1 kg (2.2 lb)",
+              "price": 479,
+              "mrp": 649,
+              "unitPrice": "₹48 / 100 g"
+          }
+      ],
+      "nutrition": {
+          "protein": "22g",
+          "fiber": "11g",
+          "iron": "High",
+          "glutenFree": "Yes"
+      },
+      "description": "Gluten-free Australian rolled oats packed with heart-healthy beta-glucan and protein to support endurance and weight management."
+  },
+  {
+      "id": "gn-pintola-peanut-1kg",
+      "title": "Pintola All-Natural Peanut Butter Crunchy 1kg",
+      "category": "peanut-butter",
+      "rating": 4.9,
+      "reviewsCount": 14200,
+      "isVeg": true,
+      "badgeText": "31% OFF",
+      "isBestseller": true,
+      "stock": 30,
+      "image": "assets/products/gn-pintola-peanut-1kg.jpeg",
+      "variants": [
+          {
+              "weight": "1 kg (2.2 lb)",
+              "price": 479,
+              "mrp": 699,
+              "unitPrice": "₹48 / 100 g"
+          }
+      ],
+      "nutrition": {
+          "protein": "30g",
+          "healthyFats": "50g",
+          "addedSugar": "0g",
+          "ingredients": "100% Peanuts"
+      },
+      "description": "India's favorite 100% roasted peanut butter. Zero hydrogenated oils, zero cholesterol, zero trans-fats, and 30g pure plant protein per 100g."
+  },
+  {
+      "id": "gn-savory-peanut-1kg",
+      "title": "Savory Premium Roasted Peanut Butter 1kg",
+      "category": "peanut-butter",
+      "rating": 4.6,
+      "reviewsCount": 1840,
+      "isVeg": true,
+      "badgeText": "31% OFF",
+      "isBestseller": false,
+      "stock": 30,
+      "image": "assets/products/gn-savory-peanut-1kg.jpeg",
+      "variants": [
+          {
+              "weight": "1 kg (2.2 lb)",
+              "price": 449,
+              "mrp": 650,
+              "unitPrice": "₹45 / 100 g"
+          }
+      ],
+      "nutrition": {
+          "protein": "28g",
+          "healthyFats": "48g",
+          "addedSugar": "0g",
+          "fiber": "6g"
+      },
+      "description": "Slow-roasted Grade-A Saurashtra peanuts ground into an ultra-creamy, spreadable butter. Perfect gym snack for clean healthy calorie intake."
+  },
+  {
+      "id": "gn-savory-peanut-500g",
+      "title": "Savory Premium Roasted Peanut Butter 500g",
+      "category": "peanut-butter",
+      "rating": 4.6,
+      "reviewsCount": 1340,
+      "isVeg": true,
+      "badgeText": "18% OFF",
+      "isBestseller": false,
+      "stock": 30,
+      "image": "assets/products/gn-savory-peanut-500g.jpeg",
+      "variants": [
+          {
+              "weight": "500 g (1.1 lb)",
+              "price": 269,
+              "mrp": 330,
+              "unitPrice": "₹54 / 100 g"
+          }
+      ],
+      "nutrition": {
+          "protein": "28g",
+          "healthyFats": "48g",
+          "addedSugar": "0g",
+          "fiber": "6g"
+      },
+      "description": "Compact 500g jar of Savory roasted peanut butter. Freshly batch-milled for rich nutty aroma and high natural protein density."
+  },
+  {
+      "id": "gn-alpino-peanut-1kg",
+      "title": "Alpino Classic Natural Peanut Butter Crunchy 1kg",
+      "category": "peanut-butter",
+      "rating": 4.7,
+      "reviewsCount": 3890,
+      "isVeg": true,
+      "badgeText": "26% OFF",
+      "isBestseller": false,
+      "stock": 30,
+      "image": "assets/products/gn-alpino-peanut-1kg.jpeg",
+      "variants": [
+          {
+              "weight": "1 kg (2.2 lb)",
+              "price": 479,
+              "mrp": 649,
+              "unitPrice": "₹48 / 100 g"
+          }
+      ],
+      "nutrition": {
+          "protein": "30g",
+          "healthyFats": "49g",
+          "addedSugar": "0g",
+          "salt": "0g"
+      },
+      "description": "US FDA registered Alpino natural peanut butter. Non-GMO, vegan, gluten-free, with zero preservatives and authentic nutty crunch."
+  },
+  {
+      "id": "gn-wellcore-creatine-300g",
+      "title": "Wellcore Pure Micronised Creatine Monohydrate 300g",
+      "category": "creatine",
+      "rating": 4.8,
+      "reviewsCount": 7890,
+      "isVeg": true,
+      "badgeText": "43% OFF",
+      "isBestseller": true,
+      "stock": 30,
+      "image": "assets/products/gn-wellcore-creatine-300g.jpeg",
+      "variants": [
+          {
+              "weight": "300 g (100 Servings)",
+              "price": 799,
+              "mrp": 1399,
+              "unitPrice": "₹266 / 100 g"
+          }
+      ],
+      "nutrition": {
+          "creatine": "3000mg",
+          "servings": "100 Servings",
+          "mesh": "Micro-Refined",
+          "calories": "0 kcal"
+      },
+      "description": "100% pure pharmaceutical micronized creatine monohydrate. Rapidly dissolves in water, accelerates ATP production, and boosts heavy lift endurance."
+  },
+  {
+      "id": "gn-wellcore-creatine-122g",
+      "title": "Wellcore Pure Micronised Creatine Monohydrate 122g",
+      "category": "creatine",
+      "rating": 4.7,
+      "reviewsCount": 3450,
+      "isVeg": true,
+      "badgeText": "36% OFF",
+      "isBestseller": false,
+      "stock": 30,
+      "image": "assets/products/gn-wellcore-creatine-122g.jpeg",
+      "variants": [
+          {
+              "weight": "122 g (40 Servings)",
+              "price": 449,
+              "mrp": 699,
+              "unitPrice": "₹368 / 100 g"
+          }
+      ],
+      "nutrition": {
+          "creatine": "3000mg",
+          "servings": "40 Servings",
+          "mesh": "Micro-Refined",
+          "calories": "0 kcal"
+      },
+      "description": "Travel-friendly 122g tub of Wellcore micronized creatine. 40 potent servings for explosive muscle power, cellular hydration, and rapid recovery."
+  },
+  {
+      "id": "gn-mb-creatine-300g",
+      "title": "MuscleBlaze Creatine Monohydrate CreAMP™ 300g",
+      "category": "creatine",
+      "rating": 4.8,
+      "reviewsCount": 9840,
+      "isVeg": true,
+      "badgeText": "27% OFF",
+      "isBestseller": true,
+      "stock": 30,
+      "image": "assets/products/gn-mb-creatine-300g.jpeg",
+      "variants": [
+          {
+              "weight": "300 g (100 Servings)",
+              "price": 799,
+              "mrp": 1099,
+              "unitPrice": "₹266 / 100 g"
+          }
+      ],
+      "nutrition": {
+          "creatine": "3000mg",
+          "mesh": "200 Mesh",
+          "servings": "100 Servings",
+          "sugar": "0g"
+      },
+      "description": "India's highest selling CreAMP micronized creatine monohydrate. 200 mesh ultra-fine powder that increases muscle cell volume and peak athletic force."
+  },
+  {
+      "id": "gn-mb-creatine-100g",
+      "title": "MuscleBlaze Creatine Monohydrate CreAMP™ 100g",
+      "category": "creatine",
+      "rating": 4.7,
+      "reviewsCount": 4210,
+      "isVeg": true,
+      "badgeText": "40% OFF",
+      "isBestseller": false,
+      "stock": 30,
+      "image": "assets/products/gn-mb-creatine-100g.jpeg",
+      "variants": [
+          {
+              "weight": "100 g (33 Servings)",
+              "price": 449,
+              "mrp": 749,
+              "unitPrice": "₹449 / 100 g"
+          }
+      ],
+      "nutrition": {
+          "creatine": "3000mg",
+          "mesh": "200 Mesh",
+          "servings": "33 Servings",
+          "sugar": "0g"
+      },
+      "description": "Starter 100g pack of MuscleBlaze creatine monohydrate. 33 daily servings designed to elevate muscle phosphocreatine stores."
+  },
+  {
+      "id": "gn-muscletech-glutamine-250g",
+      "title": "MuscleTech Platinum 100% Pure Glutamine Powder 250g",
+      "category": "aminos",
+      "rating": 4.8,
+      "reviewsCount": 3840,
+      "isVeg": true,
+      "badgeText": "59% OFF",
+      "isBestseller": true,
+      "stock": 30,
+      "image": "assets/products/gn-muscletech-glutamine-250g.jpeg",
+      "variants": [
+          {
+              "weight": "250 g (50 Servings)",
+              "price": 699,
+              "mrp": 1699,
+              "unitPrice": "₹280 / 100 g"
+          }
+      ],
+      "nutrition": {
+          "glutamine": "5000mg",
+          "purity": "HPLC-Tested",
+          "servings": "50 Servings"
+      },
+      "description": "Platinum 100% Glutamine supplies 5g of pure L-glutamine per serving to support muscle glycogen replenishment and prevent post-workout catabolism."
+  },
+  {
+      "id": "gn-muscletech-eaa-396g",
+      "title": "MuscleTech Platinum 100% EAA+ Advanced Aminos 396g",
+      "category": "aminos",
+      "rating": 4.7,
+      "reviewsCount": 2680,
+      "isVeg": true,
+      "badgeText": "50% OFF",
+      "isBestseller": true,
+      "stock": 30,
+      "image": "assets/products/gn-muscletech-eaa-396g.jpeg",
+      "variants": [
+          {
+              "weight": "396 g (30 Servings)",
+              "price": 1499,
+              "mrp": 2999,
+              "unitPrice": "₹379 / 100 g"
+          }
+      ],
+      "nutrition": {
+          "totalEaa": "8.6g",
+          "bcaa": "7.4g",
+          "electrolytes": "Coconut Water",
+          "servings": "30"
+      },
+      "description": "Complete 9 essential amino acid matrix with full clinical electrolyte blend for intra-workout intra-cellular hydration and non-stop muscular endurance."
+  },
+  {
+      "id": "gn-rage-pre-60serve",
+      "title": "Rage Explosive High Stimulant Pre-Workout 60 Servings",
+      "category": "pre-workout",
+      "rating": 4.8,
+      "reviewsCount": 4120,
+      "isVeg": true,
+      "badgeText": "63% OFF",
+      "isBestseller": true,
+      "stock": 30,
+      "image": "assets/products/gn-rage-pre-60serve.jpeg",
+      "variants": [
+          {
+              "weight": "60 Servings",
+              "price": 999,
+              "mrp": 2699,
+              "unitPrice": "₹999 / unit"
+          }
+      ],
+      "nutrition": {
+          "caffeine": "350mg",
+          "betaAlanine": "3500mg",
+          "lCitrulline": "6000mg",
+          "servings": "60"
+      },
+      "description": "High-intensity stimulant pre-workout that fuels insane skin-splitting muscle pumps, laser focus, and raw strength for grueling gym sets."
+  },
+  {
+      "id": "gn-mb-pre-xtreme-100g",
+      "title": "MuscleBlaze Pre-Workout 200 Xtreme Formula 100g",
+      "category": "pre-workout",
+      "rating": 4.6,
+      "reviewsCount": 2350,
+      "isVeg": true,
+      "badgeText": "33% OFF",
+      "isBestseller": false,
+      "stock": 30,
+      "image": "assets/products/gn-mb-pre-xtreme-100g.jpeg",
+      "variants": [
+          {
+              "weight": "100 g (20 Servings)",
+              "price": 499,
+              "mrp": 749,
+              "unitPrice": "₹499 / 100 g"
+          }
+      ],
+      "nutrition": {
+          "caffeine": "200mg",
+          "lCitrulline": "2000mg",
+          "betaAlanine": "1500mg",
+          "servings": "20"
+      },
+      "description": "Formulated with 200mg instant caffeine and beta-alanine to delay muscle fatigue, sharpen focus, and power through heavy lift training."
+  },
+  {
+      "id": "gn-bm-pre-60serve",
+      "title": "BigMuscles (BM) Freak Pre-Workout Formula 60 Servings",
+      "category": "pre-workout",
+      "rating": 4.6,
+      "reviewsCount": 1890,
+      "isVeg": true,
+      "badgeText": "46% OFF",
+      "isBestseller": false,
+      "stock": 30,
+      "image": "assets/products/gn-bm-pre-60serve.jpeg",
+      "variants": [
+          {
+              "weight": "60 Servings",
+              "price": 999,
+              "mrp": 1849,
+              "unitPrice": "₹999 / unit"
+          }
+      ],
+      "nutrition": {
+          "caffeine": "300mg",
+          "citrullineMalate": "4000mg",
+          "betaAlanine": "3000mg",
+          "servings": "60"
+      },
+      "description": "Intense pump and endurance pre-workout blend. Formulated to increase nitric oxide blood flow and provide clean sustained workout energy."
+  },
+  {
+      "id": "gn-dynamite-pre-30serve",
+      "title": "Dynamite High Voltage Extreme Pre-Workout 30 Servings",
+      "category": "pre-workout",
+      "rating": 4.5,
+      "reviewsCount": 1420,
+      "isVeg": true,
+      "badgeText": "56% OFF",
+      "isBestseller": false,
+      "stock": 30,
+      "image": "assets/products/gn-dynamite-pre-30serve.jpeg",
+      "variants": [
+          {
+              "weight": "30 Servings",
+              "price": 999,
+              "mrp": 2249,
+              "unitPrice": "₹999 / unit"
+          }
+      ],
+      "nutrition": {
+          "caffeine": "400mg",
+          "betaAlanine": "3200mg",
+          "lArginine": "2000mg",
+          "servings": "30"
+      },
+      "description": "Ultra-potent hardcore pre-workout matrix engineered with maximum legal stimulant dosages for extreme vascularity and energy explosions."
+  },
+  {
+      "id": "gn-bloodlock-pre-60serve",
+      "title": "Bloodlock Psycho Pump Pre-Workout 60 Servings",
+      "category": "pre-workout",
+      "rating": 4.8,
+      "reviewsCount": 2100,
+      "isVeg": true,
+      "badgeText": "45% OFF",
+      "isBestseller": true,
+      "stock": 30,
+      "image": "assets/products/gn-bloodlock-pre-60serve.jpeg",
+      "variants": [
+          {
+              "weight": "60 Servings",
+              "price": 2199,
+              "mrp": 3999,
+              "unitPrice": "₹2199 / unit"
+          }
+      ],
+      "nutrition": {
+          "lCitrulline": "8000mg",
+          "betaAlanine": "4000mg",
+          "caffeine": "375mg",
+          "servings": "60"
+      },
+      "description": "Legendary heavy-duty formula with massive 8000mg L-Citrulline dose for unyielding blood flow, monstrous vascular pumps, and mental intensity."
+  },
+  {
+      "id": "gn-silajit-20g",
+      "title": "Pure 100% Himalayan Shilajit Resin 20g",
+      "category": "shilajit",
+      "rating": 4.9,
+      "reviewsCount": 8450,
+      "isVeg": true,
+      "badgeText": "29% OFF",
+      "isBestseller": true,
+      "stock": 30,
+      "image": "assets/products/gn-silajit-20g.jpeg",
+      "variants": [
+          {
+              "weight": "20 g Pure Resin",
+              "price": 1099,
+              "mrp": 1549,
+              "unitPrice": "₹5495 / 100 g"
+          }
+      ],
+      "nutrition": {
+          "fulvicAcid": "80%+",
+          "minerals": "84+ Ionic Minerals",
+          "altitude": "18,000 ft"
+      },
+      "description": "Grade-A Himalayan Shilajit resin hand-harvested from high altitudes. Lab-tested with 80%+ fulvic acid for stamina, testosterone, and cellular vitality."
+  },
+  {
+      "id": "gn-silajit-40g",
+      "title": "Pure 100% Himalayan Shilajit Resin 40g Value Jar",
+      "category": "shilajit",
+      "rating": 4.9,
+      "reviewsCount": 6120,
+      "isVeg": true,
+      "badgeText": "35% OFF",
+      "isBestseller": true,
+      "stock": 30,
+      "image": "assets/products/gn-silajit-40g.jpeg",
+      "variants": [
+          {
+              "weight": "40 g Pure Resin",
+              "price": 1999,
+              "mrp": 3099,
+              "unitPrice": "₹4998 / 100 g"
+          }
+      ],
+      "nutrition": {
+          "fulvicAcid": "80%+",
+          "minerals": "84+ Ionic Minerals",
+          "altitude": "18,000 ft"
+      },
+      "description": "Double size 40g resin jar of pure golden grade Himalayan shilajit. Clinically tested for heavy metal purity to boost stamina and physical vigor."
+  },
+  {
+      "id": "gn-silajit-60caps",
+      "title": "Pure Himalayan Shilajit Gold 500mg (60 Veg Capsules)",
+      "category": "shilajit",
+      "rating": 4.7,
+      "reviewsCount": 3290,
+      "isVeg": true,
+      "badgeText": "40% OFF",
+      "isBestseller": false,
+      "stock": 30,
+      "image": "assets/products/gn-silajit-60caps.jpeg",
+      "variants": [
+          {
+              "weight": "60 Veg Capsules",
+              "price": 899,
+              "mrp": 1499,
+              "unitPrice": "₹899 / unit"
+          }
+      ],
+      "nutrition": {
+          "shilajitExtract": "500mg",
+          "fulvicAcid": "60%",
+          "ashwagandha": "100mg",
+          "servings": "60"
+      },
+      "description": "Convenient pure shilajit capsules enriched with standardized fulvic acid and herbs for daily vitality, anti-fatigue, and immune resilience."
+  },
+  {
+      "id": "gn-kapiva-aswagandha-60caps",
+      "title": "Kapiva Organic Ashwagandha Gold 1000mg (60 Capsules)",
+      "category": "ashwagandha",
+      "rating": 4.8,
+      "reviewsCount": 5420,
+      "isVeg": true,
+      "badgeText": "33% OFF",
+      "isBestseller": true,
+      "stock": 30,
+      "image": "assets/products/gn-kapiva-aswagandha-60caps.jpeg",
+      "variants": [
+          {
+              "weight": "60 Veg Capsules",
+              "price": 399,
+              "mrp": 599,
+              "unitPrice": "₹399 / unit"
+          }
+      ],
+      "nutrition": {
+          "ashwagandhaExtract": "1000mg",
+          "withanolides": "5%",
+          "purity": "100% Organic"
+      },
+      "description": "Clinically proven stress-relieving root extract that regulates cortisol levels, promotes sound REM sleep, and boosts muscular strength."
+  },
+  {
+      "id": "gn-wow-omega-60caps",
+      "title": "WOW Life Science Triple Strength Deep-Sea Fish Oil 60 Softgels",
+      "category": "fish-oil",
+      "rating": 4.8,
+      "reviewsCount": 7890,
+      "isVeg": false,
+      "badgeText": "65% OFF",
+      "isBestseller": true,
+      "stock": 30,
+      "image": "assets/products/gn-wow-omega-60caps.jpeg",
+      "variants": [
+          {
+              "weight": "60 Softgels",
+              "price": 699,
+              "mrp": 1999,
+              "unitPrice": "₹699 / unit"
+          }
+      ],
+      "nutrition": {
+          "totalOmega3": "1000mg",
+          "epa": "550mg",
+          "dha": "350mg",
+          "coating": "Enteric"
+      },
+      "description": "Molecularly distilled deep-sea fish oil with 3x EPA & DHA concentration. Enteric coated for zero fishy aftertaste and optimal cardiovascular & joint support."
+  },
+  {
+      "id": "gn-mb-fish-oil-gold-60caps",
+      "title": "MuscleBlaze Fish Oil Gold Triple Strength 60 Softgels",
+      "category": "fish-oil",
+      "rating": 4.8,
+      "reviewsCount": 8940,
+      "isVeg": false,
+      "badgeText": "38% OFF",
+      "isBestseller": true,
+      "stock": 30,
+      "image": "assets/products/gn-mb-fish-oil-gold-60caps.jpeg",
+      "variants": [
+          {
+              "weight": "60 Softgels",
+              "price": 899,
+              "mrp": 1449,
+              "unitPrice": "₹899 / unit"
+          }
+      ],
+      "nutrition": {
+          "totalOmega3": "1000mg",
+          "epa": "560mg",
+          "dha": "400mg",
+          "antiReflux": "Yes"
+      },
+      "description": "Gold standard triple strength fish oil formulated from wild deep ocean fishes. Supports flexibility of cartilage, heart health, and muscle protein synthesis."
+  },
+  {
+      "id": "gn-mb-5in1-multivitamin-90caps",
+      "title": "MuscleBlaze 5-in-1 Daily Multivitamin Complex 90 Tablets",
+      "category": "multivitamins",
+      "rating": 4.8,
+      "reviewsCount": 6750,
+      "isVeg": true,
+      "badgeText": "38% OFF",
+      "isBestseller": true,
+      "stock": 30,
+      "image": "assets/products/gn-mb-5in1-multivitamin-90caps.jpeg",
+      "variants": [
+          {
+              "weight": "90 Tablets (3 Months Supply)",
+              "price": 799,
+              "mrp": 1299,
+              "unitPrice": "₹8.9 / count"
+          }
+      ],
+      "nutrition": {
+          "vitamins": "12 Essential",
+          "minerals": "8 Chelated",
+          "herbalBlends": "Ginkgo & Ginseng",
+          "servings": "90"
+      },
+      "description": "5-in-1 comprehensive sports multivitamin blend containing micronutrients, amino acids, prebiotic digestive enzymes, and vitality herbs for athletes."
+  },
+  {
+      "id": "gn-nutrabay-fish-oil-60caps",
+      "title": "Nutrabay Pure 1000mg Deep Sea Fish Oil 60 Softgels",
+      "category": "fish-oil",
+      "rating": 4.6,
+      "reviewsCount": 4120,
+      "isVeg": false,
+      "badgeText": "9% OFF",
+      "isBestseller": false,
+      "stock": 30,
+      "image": "assets/products/gn-nutrabay-fish-oil-60caps.jpeg",
+      "variants": [
+          {
+              "weight": "60 Softgels",
+              "price": 319,
+              "mrp": 349,
+              "unitPrice": "₹319 / unit"
+          }
+      ],
+      "nutrition": {
+          "fishOil": "1000mg",
+          "epa": "180mg",
+          "dha": "120mg",
+          "mercuryFree": "Certified"
+      },
+      "description": "Pocket-friendly everyday omega-3 fatty acids for gym enthusiasts and adults seeking joint mobility and cardiovascular maintenance."
+  },
+  {
+      "id": "gn-muscletech-fish-100caps",
+      "title": "MuscleTech Platinum 100% Omega Deep Sea Fish Oil 100 Softgels",
+      "category": "fish-oil",
+      "rating": 4.7,
+      "reviewsCount": 5120,
+      "isVeg": false,
+      "badgeText": "47% OFF",
+      "isBestseller": true,
+      "stock": 30,
+      "image": "assets/products/gn-muscletech-fish-100caps.jpeg",
+      "variants": [
+          {
+              "weight": "100 Softgels",
+              "price": 699,
+              "mrp": 1329,
+              "unitPrice": "₹699 / unit"
+          }
+      ],
+      "nutrition": {
+          "pureOmega": "1000mg",
+          "epaDha": "300mg",
+          "entericCoated": "Zero Burps",
+          "servings": "100"
+      },
+      "description": "High-purity ultra-filtered fish oil softgels from MuscleTech USA. Contains 100 enteric softgels that deliver essential omega fatty acids without fishy burps."
+  },
+  {
+      "id": "gn-muscletech-multivitamin-60caps",
+      "title": "MuscleTech Platinum 100% High Potency Daily Multivitamin 60 Tabs",
+      "category": "multivitamins",
+      "rating": 4.8,
+      "reviewsCount": 4890,
+      "isVeg": true,
+      "badgeText": "56% OFF",
+      "isBestseller": true,
+      "stock": 30,
+      "image": "assets/products/gn-muscletech-multivitamin-60caps.jpeg",
+      "variants": [
+          {
+              "weight": "60 Tablets",
+              "price": 699,
+              "mrp": 1599,
+              "unitPrice": "₹11.7 / count"
+          }
+      ],
+      "nutrition": {
+          "vitaminsMinerals": "18 High Potency",
+          "aminoSupport": "865mg",
+          "herbalMatrix": "Green Tea",
+          "servings": "60"
+      },
+      "description": "Advanced multi-vitamin & mineral complex engineered for elite athletes. Supplies over 100% RDA of essential vitamins to support immune and metabolic health."
+  },
+  {
+      "id": "gn-nutrabay-multivitamin-60caps",
+      "title": "Nutrabay Daily Essentials Advanced Multivitamin 60 Tablets",
+      "category": "multivitamins",
+      "rating": 4.6,
+      "reviewsCount": 3540,
+      "isVeg": true,
+      "badgeText": "46% OFF",
+      "isBestseller": false,
+      "stock": 30,
+      "image": "assets/products/gn-nutrabay-multivitamin-60caps.jpeg",
+      "variants": [
+          {
+              "weight": "60 Tablets",
+              "price": 269,
+              "mrp": 499,
+              "unitPrice": "₹4.5 / count"
+          }
+      ],
+      "nutrition": {
+          "vitamins": "13 Essential",
+          "minerals": "11 Minerals",
+          "immunity": "Vitamin C & Zinc",
+          "servings": "60"
+      },
+      "description": "Daily immunity and stamina booster multivitamin tablet. Supplies zinc, vitamin D3, B-complex, and biotin for everyday active wellness."
+  },
+  {
+      "id": "gn-nutrabay-magnesium-60caps",
+      "title": "Nutrabay Pure Magnesium Glycinate 60 Veg Capsules",
+      "category": "magnesium",
+      "rating": 4.7,
+      "reviewsCount": 2180,
+      "isVeg": true,
+      "badgeText": "27% OFF",
+      "isBestseller": false,
+      "stock": 30,
+      "image": "assets/products/gn-nutrabay-magnesium-60caps.jpeg",
+      "variants": [
+          {
+              "weight": "60 Veg Capsules",
+              "price": 399,
+              "mrp": 549,
+              "unitPrice": "₹399 / unit"
+          }
+      ],
+      "nutrition": {
+          "elementalMagnesium": "400mg",
+          "form": "Chelated Glycinate",
+          "stomachGentle": "100%"
+      },
+      "description": "Chelated magnesium bisglycinate with superior intestinal absorption. Eases muscular tightness, prevents painful cramps, and supports deep regenerative sleep."
+  },
+  {
+      "id": "gn-gnc-calcium-60caps",
+      "title": "GNC Calcium Plus 600mg with Vitamin D3 & Magnesium 60 Tablets",
+      "category": "multivitamins",
+      "rating": 4.7,
+      "reviewsCount": 2950,
+      "isVeg": true,
+      "badgeText": "33% OFF",
+      "isBestseller": false,
+      "stock": 30,
+      "image": "assets/products/gn-gnc-calcium-60caps.jpeg",
+      "variants": [
+          {
+              "weight": "60 Tablets",
+              "price": 299,
+              "mrp": 449,
+              "unitPrice": "₹5.0 / count"
+          }
+      ],
+      "nutrition": {
+          "calcium": "600mg",
+          "vitaminD3": "400 IU",
+          "magnesium": "50mg",
+          "servings": "60"
+      },
+      "description": "Fortified bone and joint strength matrix. Combines 600mg calcium with Vitamin D3 for enhanced bone mineral density and muscular contraction efficiency."
+  },
+  {
+      "id": "gn-muscletech-hydroxycut-100caps",
+      "title": "MuscleTech Hydroxycut Hardcore Elite Fat Burner 100 Rapid-Release Caps",
+      "category": "pre-workout",
+      "rating": 4.7,
+      "reviewsCount": 6120,
+      "isVeg": false,
+      "badgeText": "54% OFF",
+      "isBestseller": true,
+      "stock": 30,
+      "image": "assets/products/gn-muscletech-hydroxycut-100caps.jpeg",
+      "variants": [
+          {
+              "weight": "100 Rapid-Release Capsules",
+              "price": 1299,
+              "mrp": 2799,
+              "unitPrice": "₹13.0 / count"
+          }
+      ],
+      "nutrition": {
+          "caffeineAnhydrous": "270mg",
+          "greenCoffee": "200mg",
+          "lTheanine": "100mg",
+          "servings": "100"
+      },
+      "description": "America's premier thermogenic weight loss super formula. Supercharges metabolic rate, accelerates calorie expenditure, and enhances intense energy levels."
+  },
+  {
+      "id": "gn-l-carnitine-473ml",
+      "title": "L-Carnitine Liquid 3000mg Fast-Action Formula 473ml",
+      "category": "l-carnitine",
+      "rating": 4.8,
+      "reviewsCount": 4210,
+      "isVeg": true,
+      "badgeText": "48% OFF",
+      "isBestseller": true,
+      "stock": 30,
+      "image": "assets/products/gn-l-carnitine-473ml.jpeg",
+      "variants": [
+          {
+              "weight": "473 ml (31 Servings)",
+              "price": 1699,
+              "mrp": 3299,
+              "unitPrice": "₹1699 / unit"
+          }
+      ],
+      "nutrition": {
+          "lCarnitine": "3000mg",
+          "vitaminB5": "10mg",
+          "zeroSugar": "100%",
+          "servings": "31"
+      },
+      "description": "Fast-acting liquid L-Carnitine 3000mg. Converts long-chain fatty acids into cellular energy (ATP) for enhanced stamina and accelerated fat shredding."
   }
 ];
 
@@ -497,6 +1847,23 @@ function initStorage() {
   if (localProducts) {
     try {
       AdminState.products = JSON.parse(localProducts);
+      const existingIds = new Set(AdminState.products.map(p => p.id));
+      let hasNew = false;
+      DEFAULT_PRODUCTS.forEach(p => {
+        if (!existingIds.has(p.id)) {
+          AdminState.products.push(p);
+          hasNew = true;
+        } else {
+          const existing = AdminState.products.find(item => item.id === p.id);
+          if (existing && !existing.image && p.image) {
+            existing.image = p.image;
+            hasNew = true;
+          }
+        }
+      });
+      if (hasNew) {
+        localStorage.setItem(STORAGE_KEYS.PRODUCTS, JSON.stringify(AdminState.products));
+      }
     } catch(e) {
       AdminState.products = DEFAULT_PRODUCTS;
       localStorage.setItem(STORAGE_KEYS.PRODUCTS, JSON.stringify(DEFAULT_PRODUCTS));
@@ -1193,7 +2560,7 @@ function renderProducts() {
       <tr>
         <td>
           <div class="product-cell">
-            <img src="${p.image || 'assets/brands/Optimum_1-1767086019_clean.png'}" alt="" class="product-thumb">
+            ${p.image ? `<img src="${p.image}" alt="" class="product-thumb" onerror="this.style.display='none'; this.nextElementSibling.style.display='inline-flex';"><span class="product-thumb-fallback" style="display:none; width:44px; height:44px; border-radius:8px; background:#1e293b; align-items:center; justify-content:center; color:#64748b;"><i class="fa-solid fa-bottle-droplet"></i></span>` : `<div class="product-thumb-fallback" style="display:inline-flex; width:44px; height:44px; border-radius:8px; background:#1e293b; align-items:center; justify-content:center; color:#64748b;"><i class="fa-solid fa-bottle-droplet"></i></div>`}
             <div>
               <div class="product-cell-title" title="${escapeHtml(p.title)}">${escapeHtml(p.title)}</div>
               <div class="product-cell-sub">ID: ${p.id} &bull; ${p.variants ? p.variants.length : 1} Variant(s)</div>
@@ -1201,7 +2568,23 @@ function renderProducts() {
           </div>
         </td>
         <td>
-          <span style="text-transform:capitalize; font-weight:600; color:var(--text-muted);">${p.category}</span>
+          <select class="admin-table-cat-select" onchange="quickChangeProductCategory('${p.id}', this.value)" title="Move to any category">
+            <option value="proteins" ${p.category === 'proteins' ? 'selected' : ''}>Proteins</option>
+            <option value="gainers" ${p.category === 'gainers' ? 'selected' : ''}>Mass Gainer</option>
+            <option value="creatine" ${p.category === 'creatine' ? 'selected' : ''}>Creatine</option>
+            <option value="pre-workout" ${p.category === 'pre-workout' ? 'selected' : ''}>Pre-Workout</option>
+            <option value="aminos" ${p.category === 'aminos' ? 'selected' : ''}>Aminos</option>
+            <option value="oats" ${p.category === 'oats' ? 'selected' : ''}>Oats</option>
+            <option value="peanut-butter" ${p.category === 'peanut-butter' ? 'selected' : ''}>Peanut Butter</option>
+            <option value="bars" ${p.category === 'bars' ? 'selected' : ''}>Bars</option>
+            <option value="shilajit" ${p.category === 'shilajit' ? 'selected' : ''}>Shilajit</option>
+            <option value="ashwagandha" ${p.category === 'ashwagandha' ? 'selected' : ''}>Ashwagandha</option>
+            <option value="fish-oil" ${p.category === 'fish-oil' ? 'selected' : ''}>Fish Oil</option>
+            <option value="multivitamins" ${p.category === 'multivitamins' ? 'selected' : ''}>Multivitamins</option>
+            <option value="magnesium" ${p.category === 'magnesium' ? 'selected' : ''}>Magnesium</option>
+            <option value="l-carnitine" ${p.category === 'l-carnitine' ? 'selected' : ''}>L-Carnitine</option>
+            ${!['proteins','gainers','creatine','pre-workout','aminos','oats','peanut-butter','bars','shilajit','ashwagandha','fish-oil','multivitamins','magnesium','l-carnitine'].includes(p.category) ? `<option value="${escapeHtml(p.category)}" selected>${escapeHtml(p.category)}</option>` : ''}
+          </select>
         </td>
         <td>
           <div style="font-weight:800; color:#fff;">₹${mainVariant.price.toLocaleString()}</div>
@@ -1404,7 +2787,18 @@ function openEditProductModal(productId) {
 
   document.getElementById('prodId').value = p.id;
   document.getElementById('prodTitle').value = p.title;
-  document.getElementById('prodCategory').value = p.category;
+
+  const catSelect = document.getElementById('prodCategory');
+  if (catSelect) {
+    const exists = Array.from(catSelect.options).some(opt => opt.value === p.category);
+    if (!exists && p.category) {
+      const opt = document.createElement('option');
+      opt.value = p.category;
+      opt.textContent = p.category;
+      catSelect.appendChild(opt);
+    }
+    catSelect.value = p.category;
+  }
   document.getElementById('prodRating').value = p.rating || 4.8;
   document.getElementById('prodReviews').value = p.reviewsCount || 150;
   document.getElementById('prodBadge').value = p.badgeText || '';
@@ -1542,6 +2936,17 @@ function deleteProduct(productId) {
   AdminState.products = AdminState.products.filter(item => item.id !== productId);
   saveProductsToStorage();
   showAdminToast('Product deleted from catalog.');
+  renderProducts();
+  renderDashboard();
+}
+
+function quickChangeProductCategory(productId, newCategory) {
+  const p = AdminState.products.find(item => item.id === productId);
+  if (!p) return;
+  const oldCategory = p.category;
+  p.category = newCategory;
+  saveProductsToStorage();
+  showAdminToast(`Moved "${p.title.slice(0, 26)}..." to ${newCategory}`);
   renderProducts();
   renderDashboard();
 }

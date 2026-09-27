@@ -1696,3 +1696,33 @@ textarea.form-control {
   transform: scale(1.05);
 }
 
+/* Quick Category Mover Selector in Products Table */
+.admin-table-cat-select {
+  background: rgba(30, 41, 59, 0.85);
+  color: #e2e8f0;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 9999px;
+  padding: 5px 12px;
+  font-size: 0.76rem;
+  font-weight: 700;
+  cursor: pointer;
+  outline: none;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+.admin-table-cat-select:hover,
+.admin-table-cat-select:focus {
+  border-color: var(--admin-primary, #e11d48);
+  color: #ffffff;
+  background: #1e293b;
+  box-shadow: 0 0 0 2px rgba(225, 29, 72, 0.25);
+}
+
+.admin-table-cat-select option {
+  background: #0f172a;
+  color: #ffffff;
+  padding: 6px;
+}
+
+
