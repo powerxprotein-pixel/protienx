@@ -1896,7 +1896,94 @@ document.addEventListener('DOMContentLoaded', () => {
   setupHamburgerDrawer();
   loadCartFromStorage();
   initSupabaseAuth();
+  syncStorefrontFromSupabase();
+  initSupabaseStorefrontRealtime();
 });
+
+// ==========================================
+// SUPABASE STOREFRONT CLOUD SYNC & REALTIME
+// ==========================================
+async function syncStorefrontFromSupabase() {
+  if (!supabaseClient) return;
+  try {
+    // 1. Fetch Products from Supabase Cloud
+    const { data: prods, error: pErr } = await supabaseClient.from('products').select('*');
+    if (!pErr && Array.isArray(prods) && prods.length > 0) {
+      PRODUCTS = prods.map(p => ({
+        id: p.id,
+        title: p.title,
+        category: p.category,
+        rating: Number(p.rating),
+        reviewsCount: Number(p.reviews_count),
+        currentPrice: Number(p.current_price),
+        originalPrice: Number(p.original_price),
+        discount: p.discount,
+        inStock: p.in_stock,
+        image: p.image,
+        gallery: p.gallery || [p.image],
+        description: p.description,
+        variants: p.variants || [],
+        isVeg: p.is_veg,
+        badgeText: p.badge_text,
+        isBestseller: p.is_bestseller,
+        stock: p.stock,
+        nutrition: p.nutrition || {}
+      }));
+      renderPerformanceProducts('proteins');
+      renderVitaminsProducts('fish-oil');
+      renderHealthFoodProducts('peanut-butter');
+      console.log('⚡ Storefront live synced with Supabase cloud products:', PRODUCTS.length);
+    }
+
+    // 2. Fetch Combos
+    const { data: combos, error: cErr } = await supabaseClient.from('combos').select('*');
+    if (!cErr && Array.isArray(combos) && combos.length > 0) {
+      COMBOS_DATA = combos;
+      renderCombosSection();
+    }
+
+    // 3. Fetch Banners & Settings
+    const { data: configs, error: sErr } = await supabaseClient.from('store_config').select('*');
+    if (!sErr && Array.isArray(configs)) {
+      configs.forEach(cfg => {
+        if (cfg.key === 'banners' && cfg.data) {
+          const dImg = document.getElementById('heroDesktopImg');
+          const mImg = document.getElementById('heroMobileImg');
+          if (dImg && cfg.data.desktopBanner) dImg.src = cfg.data.desktopBanner;
+          if (mImg && cfg.data.mobileBanner) mImg.src = cfg.data.mobileBanner;
+        } else if (cfg.key === 'settings' && cfg.data) {
+          const topBar = document.getElementById('announcementBar');
+          if (topBar && cfg.data.announcementText) topBar.innerText = cfg.data.announcementText;
+        }
+      });
+    }
+  } catch(err) {
+    console.warn('Supabase storefront sync fallback:', err);
+  }
+}
+
+function initSupabaseStorefrontRealtime() {
+  if (!supabaseClient) return;
+  try {
+    supabaseClient
+      .channel('storefront-cloud-sync')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'products' }, () => {
+        console.log('⚡ Realtime products update received on storefront');
+        syncStorefrontFromSupabase();
+      })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'combos' }, () => {
+        console.log('⚡ Realtime combos update received on storefront');
+        syncStorefrontFromSupabase();
+      })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'store_config' }, () => {
+        console.log('⚡ Realtime config update received on storefront');
+        syncStorefrontFromSupabase();
+      })
+      .subscribe();
+  } catch(err) {
+    console.warn('Supabase realtime storefront subscription fallback:', err);
+  }
+}
 
 // Render 4-Column Category Grids with Transparent Product Cutouts
 function renderCategory4Cols() {

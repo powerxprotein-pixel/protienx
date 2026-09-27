@@ -1997,19 +1997,65 @@ function initStorage() {
   initSupabaseRealtimeOrders();
 }
 
-function saveProductsToStorage() {
+function saveProductsToStorage(modifiedProduct = null) {
   localStorage.setItem(STORAGE_KEYS.PRODUCTS, JSON.stringify(AdminState.products));
   broadcastLiveSync('PRODUCTS_UPDATED', AdminState.products);
+
+  // Cloud Sync to Supabase Database
+  if (supabaseClient) {
+    const list = modifiedProduct ? [modifiedProduct] : AdminState.products;
+    list.forEach(p => {
+      const vars = p.variants || [];
+      const cPrice = p.currentPrice || (vars[0] ? vars[0].price : 1999);
+      const oPrice = p.originalPrice || (vars[0] ? vars[0].mrp : 2999);
+      supabaseClient.from('products').upsert([{
+        id: p.id,
+        title: p.title,
+        category: p.category,
+        rating: p.rating || 4.8,
+        reviews_count: p.reviewsCount || 100,
+        current_price: cPrice,
+        original_price: oPrice,
+        discount: p.discount || '',
+        in_stock: p.inStock !== false,
+        image: p.image || '',
+        gallery: p.gallery || [p.image],
+        description: p.description || '',
+        variants: vars,
+        is_veg: p.isVeg !== false,
+        badge_text: p.badgeText || '',
+        is_bestseller: !!p.isBestseller,
+        stock: p.stock !== undefined ? p.stock : 30,
+        nutrition: p.nutrition || {}
+      }]).then(({ error }) => {
+        if (error) console.warn('Supabase product sync warning:', error.message);
+      }).catch(err => console.warn('Supabase product sync error:', err));
+    });
+  }
 }
 
 function saveCategoriesToStorage() {
   localStorage.setItem(STORAGE_KEYS.CATEGORIES, JSON.stringify(AdminState.categories));
   broadcastLiveSync('CATEGORIES_UPDATED', AdminState.categories);
+  if (supabaseClient) {
+    supabaseClient.from('store_config').upsert([{
+      key: 'categories',
+      data: AdminState.categories,
+      updated_at: new Date().toISOString()
+    }]).then(() => {}).catch(e => console.warn(e));
+  }
 }
 
 function saveBannersToStorage() {
   localStorage.setItem(STORAGE_KEYS.BANNERS, JSON.stringify(AdminState.banners));
   broadcastLiveSync('BANNERS_UPDATED', AdminState.banners);
+  if (supabaseClient) {
+    supabaseClient.from('store_config').upsert([{
+      key: 'banners',
+      data: AdminState.banners,
+      updated_at: new Date().toISOString()
+    }]).then(() => {}).catch(e => console.warn(e));
+  }
 }
 
 function saveOrdersToStorage() {
@@ -2020,11 +2066,29 @@ function saveOrdersToStorage() {
 function saveCouponsToStorage() {
   localStorage.setItem(STORAGE_KEYS.COUPONS, JSON.stringify(AdminState.coupons));
   broadcastLiveSync('COUPONS_UPDATED', AdminState.coupons);
+  if (supabaseClient && Array.isArray(AdminState.coupons)) {
+    AdminState.coupons.forEach(c => {
+      supabaseClient.from('coupons').upsert([{
+        code: c.code,
+        type: c.type,
+        value: c.value,
+        min_order: c.minOrder || 0,
+        active: c.active !== false
+      }]).then(() => {}).catch(e => console.warn(e));
+    });
+  }
 }
 
 function saveSettingsToStorage() {
   localStorage.setItem(STORAGE_KEYS.SETTINGS, JSON.stringify(AdminState.settings));
   broadcastLiveSync('SETTINGS_UPDATED', AdminState.settings);
+  if (supabaseClient) {
+    supabaseClient.from('store_config').upsert([{
+      key: 'settings',
+      data: AdminState.settings,
+      updated_at: new Date().toISOString()
+    }]).then(() => {}).catch(e => console.warn(e));
+  }
 }
 
 // ==========================================================================
@@ -3066,6 +3130,13 @@ function deleteProduct(productId) {
   showAdminToast('Product deleted from catalog.');
   renderProducts();
   renderDashboard();
+
+  // Cloud delete from Supabase
+  if (supabaseClient) {
+    try {
+      supabaseClient.from('products').delete().eq('id', productId).then(() => {});
+    } catch(e) {}
+  }
 }
 
 function quickChangeProductCategory(productId, newCategory) {
