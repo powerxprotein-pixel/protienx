@@ -70,13 +70,15 @@ body {
   background: var(--text-dim);
 }
 
-/* --------------------------------------------------------------------------
-   Layout Structure: Sidebar + Main Content
-   -------------------------------------------------------------------------- */
+/* Layout Structure: Strictly hidden until master passcode is authenticated */
 .admin-layout {
-  display: flex;
+  display: none !important;
   width: 100%;
   min-height: 100vh;
+}
+
+body.admin-authenticated .admin-layout {
+  display: flex !important;
 }
 
 /* Sidebar */

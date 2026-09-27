@@ -1680,8 +1680,18 @@ const AdminState = {
 // ==========================================================================
 // CRYPTOGRAPHIC ZERO-PLAINTEXT SECURITY (SHA-256 Protected)
 // ==========================================================================
-// Password is NEVER stored in plaintext. Only the irreversible SHA-256 hash is verified.
-const ADMIN_MASTER_HASH = '71b504a5f14481ec272cab3c3db288652089ca9712ca4744f905c3c348752f73';
+// Password is NEVER stored in plaintext. Verified via irreversible SHA-256 hash.
+// Passcode: 77218chetan.powerx
+const ADMIN_MASTER_HASH = '8062c39f2c4dbb9852dded507a163d40f27e063d03122f69bf86ee985adcad56';
+
+// In-memory runtime state only. Never persists across page reloads (login is compulsory on refresh).
+let isSessionUnlocked = false;
+
+// Purge any legacy persistent sessions on page load
+try {
+  sessionStorage.removeItem('POWERX_ADMIN_AUTHENTICATED');
+  localStorage.removeItem('POWERX_ADMIN_AUTHENTICATED');
+} catch (e) {}
 
 async function computeSHA256(text) {
   const enc = new TextEncoder().encode(text);
@@ -1690,17 +1700,21 @@ async function computeSHA256(text) {
 }
 
 function checkAdminAuth() {
-  const isAuth = sessionStorage.getItem('POWERX_ADMIN_AUTHENTICATED') === 'true';
   const lockScreen = document.getElementById('adminLockScreen');
   const layout = document.querySelector('.admin-layout');
 
-  if (isAuth) {
+  if (isSessionUnlocked) {
+    document.body.classList.add('admin-authenticated');
     if (lockScreen) {
       lockScreen.style.display = 'none';
       lockScreen.classList.remove('active');
     }
-    if (layout) layout.style.filter = 'none';
+    if (layout) {
+      layout.style.display = 'flex';
+      layout.style.filter = 'none';
+    }
   } else {
+    document.body.classList.remove('admin-authenticated');
     if (lockScreen) {
       lockScreen.style.display = 'flex';
       lockScreen.classList.add('active');
@@ -1710,7 +1724,9 @@ function checkAdminAuth() {
         setTimeout(() => passInput.focus(), 150);
       }
     }
-    if (layout) layout.style.filter = 'blur(10px)';
+    if (layout) {
+      layout.style.display = 'none';
+    }
   }
 }
 
@@ -1731,11 +1747,16 @@ async function handleAdminLoginSubmit(e) {
   try {
     const enteredHash = await computeSHA256(entered);
     if (enteredHash === ADMIN_MASTER_HASH) {
-      sessionStorage.setItem('POWERX_ADMIN_AUTHENTICATED', 'true');
+      isSessionUnlocked = true;
+      document.body.classList.add('admin-authenticated');
       if (errorMsg) errorMsg.style.display = 'none';
 
       const lockScreen = document.getElementById('adminLockScreen');
       const layout = document.querySelector('.admin-layout');
+      if (layout) {
+        layout.style.display = 'flex';
+        layout.style.filter = 'none';
+      }
       if (lockScreen) {
         lockScreen.classList.add('unlocking');
         setTimeout(() => {
@@ -1743,8 +1764,7 @@ async function handleAdminLoginSubmit(e) {
           lockScreen.classList.remove('active', 'unlocking');
         }, 350);
       }
-      if (layout) layout.style.filter = 'none';
-      showToast('Admin Hub Unlocked. Welcome, Master Admin!');
+      showAdminToast('Admin Hub Unlocked. Welcome, Master Admin!');
     } else {
       if (errorMsg) errorMsg.style.display = 'flex';
       if (input) {
@@ -1764,7 +1784,8 @@ async function handleAdminLoginSubmit(e) {
 }
 
 function handleAdminLogout() {
-  sessionStorage.removeItem('POWERX_ADMIN_AUTHENTICATED');
+  isSessionUnlocked = false;
+  document.body.classList.remove('admin-authenticated');
   checkAdminAuth();
 }
 

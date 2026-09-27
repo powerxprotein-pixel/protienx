@@ -2212,7 +2212,7 @@ function quickAddToCart(productId) {
 
   saveCartToStorage();
   updateCartUI();
-  openToast(`Added "${p.title}" to cart!`);
+  openToast('Added to cart');
 }
 
 function updateCartItemQty(index, delta) {
@@ -3303,7 +3303,7 @@ function addComboToCart(comboId) {
 
   saveCartToStorage();
   updateCartUI();
-  openToast(`Added "${combo.title}" to cart! 🎁`);
+  openToast('Combo added to cart');
 }
 
 function scrollToCombos(e) {
