@@ -3,6 +3,22 @@
  * Core State Engine & Business Logic
  */
 
+// SUPABASE CLIENT INITIALIZATION
+const SUPABASE_CONFIG = {
+  url: 'https://ggfcfcsbqijxauuokeye.supabase.co',
+  anonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdnZmNmY3NicWlqeGF1dW9rZXllIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODk0ODkwMDksImV4cCI6MjEwNTA2NTAwOX0.aLD45yiS_t_K15UnJEzD-y7alJTBo8ybsUL941a_DlI'
+};
+
+let supabaseClient = null;
+try {
+  if (window.supabase && typeof window.supabase.createClient === 'function') {
+    supabaseClient = window.supabase.createClient(SUPABASE_CONFIG.url, SUPABASE_CONFIG.anonKey);
+    console.log('⚡ Admin Supabase Client Connected');
+  }
+} catch (err) {
+  console.warn('Admin Supabase init fallback:', err);
+}
+
 // Storage Keys
 const STORAGE_KEYS = {
   PRODUCTS: 'POWERX_PRODUCTS_STORAGE',
@@ -1975,6 +1991,10 @@ function initStorage() {
     AdminState.settings = DEFAULT_SETTINGS;
     localStorage.setItem(STORAGE_KEYS.SETTINGS, JSON.stringify(DEFAULT_SETTINGS));
   }
+
+  // Cloud sync from Supabase
+  syncOrdersFromSupabase();
+  initSupabaseRealtimeOrders();
 }
 
 function saveProductsToStorage() {
@@ -2005,6 +2025,65 @@ function saveCouponsToStorage() {
 function saveSettingsToStorage() {
   localStorage.setItem(STORAGE_KEYS.SETTINGS, JSON.stringify(AdminState.settings));
   broadcastLiveSync('SETTINGS_UPDATED', AdminState.settings);
+}
+
+// ==========================================================================
+// SUPABASE CLOUD SYNC & REALTIME ENGINE
+// ==========================================================================
+async function syncOrdersFromSupabase() {
+  if (!supabaseClient) return;
+  try {
+    const { data, error } = await supabaseClient
+      .from('orders')
+      .select('*')
+      .order('created_at', { ascending: false });
+
+    if (!error && Array.isArray(data) && data.length > 0) {
+      const cloudOrders = data.map(o => ({
+        id: o.id,
+        customer: o.customer,
+        items: o.items,
+        subtotal: o.subtotal,
+        discount: o.discount,
+        coupon: o.coupon,
+        total: o.total,
+        paymentMethod: o.payment_method || 'Cash on Delivery (COD)',
+        paymentStatus: o.payment_status || 'Pending',
+        status: o.status || 'Pending',
+        createdAt: o.created_at
+      }));
+
+      // Merge cloud orders with local orders without duplicates
+      const cloudIds = new Set(cloudOrders.map(c => c.id));
+      const localOnly = AdminState.orders.filter(lo => !cloudIds.has(lo.id));
+      AdminState.orders = [...cloudOrders, ...localOnly];
+      localStorage.setItem(STORAGE_KEYS.ORDERS, JSON.stringify(AdminState.orders));
+
+      if (AdminState.currentTab === 'orders' || AdminState.currentTab === 'dashboard') {
+        renderCurrentTab();
+      }
+      updateTopbarMetrics();
+      console.log('⚡ Synced', cloudOrders.length, 'orders from Supabase cloud');
+    }
+  } catch(err) {
+    console.warn('Supabase orders fetch fallback:', err);
+  }
+}
+
+function initSupabaseRealtimeOrders() {
+  if (!supabaseClient) return;
+  try {
+    supabaseClient
+      .channel('public:orders')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'orders' }, payload => {
+        console.log('⚡ Supabase realtime order event:', payload);
+        syncOrdersFromSupabase();
+        showAdminToast('⚡ Live order synced from Supabase cloud!');
+      })
+      .subscribe();
+  } catch(err) {
+    console.warn('Supabase realtime init fallback:', err);
+  }
 }
 
 // ==========================================================================
@@ -2333,6 +2412,20 @@ function updateOrderStatus(orderId, newStatus) {
   
   if (AdminState.currentTab === 'orders') renderOrders();
   if (AdminState.currentTab === 'dashboard') renderDashboard();
+
+  // Cloud sync to Supabase
+  if (supabaseClient) {
+    try {
+      supabaseClient
+        .from('orders')
+        .update({ status: newStatus, payment_status: order.paymentStatus })
+        .eq('id', orderId)
+        .then(({ error }) => {
+          if (error) console.warn('Supabase status update error:', error.message);
+        })
+        .catch(err => console.warn('Supabase status update error:', err));
+    } catch(e) {}
+  }
 }
 
 function openOrderDetails(orderId) {
@@ -2429,6 +2522,20 @@ function deleteOrder(orderId) {
   showAdminToast(`Order ${orderId} deleted.`);
   renderOrders();
   renderDashboard();
+
+  // Cloud sync delete to Supabase
+  if (supabaseClient) {
+    try {
+      supabaseClient
+        .from('orders')
+        .delete()
+        .eq('id', orderId)
+        .then(({ error }) => {
+          if (error) console.warn('Supabase delete error:', error.message);
+        })
+        .catch(err => console.warn('Supabase delete error:', err));
+    } catch(e) {}
+  }
 }
 
 // Invoice Generator

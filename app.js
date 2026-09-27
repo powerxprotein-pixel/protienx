@@ -2951,6 +2951,28 @@ function confirmOrderPlacement() {
     } catch(e) {}
   }
 
+  // Cloud Sync to Supabase Database
+  if (supabaseClient) {
+    try {
+      supabaseClient.from('orders').insert([{
+        id: newOrder.id,
+        customer: newOrder.customer,
+        items: newOrder.items,
+        subtotal: newOrder.subtotal,
+        discount: newOrder.discount,
+        coupon: newOrder.coupon,
+        total: newOrder.total,
+        payment_method: newOrder.paymentMethod,
+        payment_status: newOrder.paymentStatus,
+        status: newOrder.status,
+        created_at: newOrder.createdAt
+      }]).then(({ error }) => {
+        if (error) console.warn('Supabase cloud order sync:', error.message);
+        else console.log('⚡ Order synced to Supabase Cloud:', newOrder.id);
+      }).catch(err => console.warn('Supabase error:', err));
+    } catch(e) {}
+  }
+
   // Clear Cart
   state.cart = [];
   state.appliedCoupon = null;
