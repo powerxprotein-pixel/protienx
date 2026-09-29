@@ -1929,6 +1929,9 @@ async function syncStorefrontFromSupabase() {
         stock: p.stock,
         nutrition: p.nutrition || {}
       }));
+      try {
+        localStorage.setItem('POWERX_PRODUCTS_STORAGE', JSON.stringify(PRODUCTS));
+      } catch(e) {}
       renderPerformanceProducts('proteins');
       renderVitaminsProducts('fish-oil');
       renderHealthFoodProducts('peanut-butter');
@@ -1939,6 +1942,9 @@ async function syncStorefrontFromSupabase() {
     const { data: combos, error: cErr } = await supabaseClient.from('combos').select('*');
     if (!cErr && Array.isArray(combos) && combos.length > 0) {
       COMBOS_DATA = combos;
+      try {
+        localStorage.setItem('POWERX_COMBOS_STORAGE', JSON.stringify(combos));
+      } catch(e) {}
       renderCombosSection();
     }
 

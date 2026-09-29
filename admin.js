@@ -1993,8 +1993,12 @@ function initStorage() {
   }
 
   // Cloud sync from Supabase
+  syncProductsFromSupabase();
   syncOrdersFromSupabase();
-  initSupabaseRealtimeOrders();
+  syncCouponsFromSupabase();
+  syncCombosFromSupabase();
+  syncStoreConfigFromSupabase();
+  initSupabaseRealtimeEngine();
 }
 
 function saveProductsToStorage(modifiedProduct = null) {
@@ -2094,6 +2098,130 @@ function saveSettingsToStorage() {
 // ==========================================================================
 // SUPABASE CLOUD SYNC & REALTIME ENGINE
 // ==========================================================================
+async function syncProductsFromSupabase() {
+  if (!supabaseClient) return;
+  try {
+    const { data, error } = await supabaseClient
+      .from('products')
+      .select('*')
+      .order('id', { ascending: true });
+
+    if (!error && Array.isArray(data) && data.length > 0) {
+      const cloudProducts = data.map(p => {
+        const vars = Array.isArray(p.variants) ? p.variants : [];
+        const cPrice = Number(p.current_price) || (vars[0] ? Number(vars[0].price) : 1999);
+        const oPrice = Number(p.original_price) || (vars[0] ? Number(vars[0].mrp) : cPrice + 1000);
+        return {
+          id: p.id,
+          title: p.title,
+          category: p.category || 'proteins',
+          rating: Number(p.rating) || 4.8,
+          reviewsCount: Number(p.reviews_count) || 120,
+          currentPrice: cPrice,
+          originalPrice: oPrice,
+          discount: p.discount || '',
+          inStock: p.in_stock !== false,
+          image: p.image || '',
+          gallery: Array.isArray(p.gallery) && p.gallery.length > 0 ? p.gallery : (p.image ? [p.image] : []),
+          description: p.description || '',
+          variants: vars,
+          isVeg: p.is_veg !== false,
+          badgeText: p.badge_text || '',
+          isBestseller: !!p.is_bestseller,
+          stock: p.stock !== undefined ? Number(p.stock) : 30,
+          nutrition: p.nutrition || {}
+        };
+      });
+
+      AdminState.products = cloudProducts;
+      localStorage.setItem(STORAGE_KEYS.PRODUCTS, JSON.stringify(AdminState.products));
+      if (AdminState.currentTab === 'products' || AdminState.currentTab === 'dashboard') {
+        renderCurrentTab();
+      }
+      updateTopbarMetrics();
+      console.log('⚡ Synced', cloudProducts.length, 'products from Supabase cloud into Admin');
+    }
+  } catch (err) {
+    console.warn('Supabase products fetch fallback:', err);
+  }
+}
+
+async function syncCombosFromSupabase() {
+  if (!supabaseClient) return;
+  try {
+    const { data, error } = await supabaseClient.from('combos').select('*');
+    if (!error && Array.isArray(data) && data.length > 0) {
+      const cloudCombos = data.map(c => ({
+        id: c.id,
+        title: c.title,
+        subtitle: c.subtitle || '',
+        price: Number(c.price) || 0,
+        mrp: Number(c.original_price) || Number(c.price) * 1.3,
+        badgeText: c.badge || c.discount || '',
+        image: c.image || '',
+        items: Array.isArray(c.items) ? c.items.map(it => typeof it === 'string' ? { name: it, image: c.image } : it) : []
+      }));
+      localStorage.setItem(STORAGE_KEYS.COMBOS, JSON.stringify(cloudCombos));
+      if (AdminState.currentTab === 'combos') {
+        renderCombosAdmin();
+      }
+      console.log('⚡ Synced', cloudCombos.length, 'combos from Supabase cloud');
+    }
+  } catch (err) {
+    console.warn('Supabase combos fetch fallback:', err);
+  }
+}
+
+async function syncCouponsFromSupabase() {
+  if (!supabaseClient) return;
+  try {
+    const { data, error } = await supabaseClient.from('coupons').select('*');
+    if (!error && Array.isArray(data) && data.length > 0) {
+      AdminState.coupons = data.map(c => ({
+        code: c.code,
+        type: c.type || 'percent',
+        value: Number(c.value) || 0,
+        minOrder: Number(c.min_order) || 0,
+        active: c.active !== false
+      }));
+      localStorage.setItem(STORAGE_KEYS.COUPONS, JSON.stringify(AdminState.coupons));
+      if (AdminState.currentTab === 'coupons') {
+        renderCoupons();
+      }
+      console.log('⚡ Synced', AdminState.coupons.length, 'coupons from Supabase cloud');
+    }
+  } catch (err) {
+    console.warn('Supabase coupons fetch fallback:', err);
+  }
+}
+
+async function syncStoreConfigFromSupabase() {
+  if (!supabaseClient) return;
+  try {
+    const { data, error } = await supabaseClient.from('store_config').select('*');
+    if (!error && Array.isArray(data)) {
+      data.forEach(cfg => {
+        if (cfg.key === 'banners' && cfg.data) {
+          AdminState.banners = cfg.data;
+          localStorage.setItem(STORAGE_KEYS.BANNERS, JSON.stringify(cfg.data));
+        } else if (cfg.key === 'settings' && cfg.data) {
+          AdminState.settings = cfg.data;
+          localStorage.setItem(STORAGE_KEYS.SETTINGS, JSON.stringify(cfg.data));
+        } else if (cfg.key === 'categories' && cfg.data) {
+          AdminState.categories = cfg.data;
+          localStorage.setItem(STORAGE_KEYS.CATEGORIES, JSON.stringify(cfg.data));
+        }
+      });
+      if (['banners', 'settings', 'categories'].includes(AdminState.currentTab)) {
+        renderCurrentTab();
+      }
+      console.log('⚡ Synced store config from Supabase cloud');
+    }
+  } catch (err) {
+    console.warn('Supabase store config fetch fallback:', err);
+  }
+}
+
 async function syncOrdersFromSupabase() {
   if (!supabaseClient) return;
   try {
@@ -2134,15 +2262,28 @@ async function syncOrdersFromSupabase() {
   }
 }
 
-function initSupabaseRealtimeOrders() {
+function initSupabaseRealtimeEngine() {
   if (!supabaseClient) return;
   try {
     supabaseClient
-      .channel('public:orders')
+      .channel('admin-cloud-realtime')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'orders' }, payload => {
         console.log('⚡ Supabase realtime order event:', payload);
         syncOrdersFromSupabase();
         showAdminToast('⚡ Live order synced from Supabase cloud!');
+      })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'products' }, payload => {
+        console.log('⚡ Supabase realtime product event:', payload);
+        syncProductsFromSupabase();
+      })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'combos' }, () => {
+        syncCombosFromSupabase();
+      })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'coupons' }, () => {
+        syncCouponsFromSupabase();
+      })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'store_config' }, () => {
+        syncStoreConfigFromSupabase();
       })
       .subscribe();
   } catch(err) {
