@@ -2009,30 +2009,36 @@ function saveProductsToStorage(modifiedProduct = null) {
   if (supabaseClient) {
     const list = modifiedProduct ? [modifiedProduct] : AdminState.products;
     list.forEach(p => {
-      const vars = p.variants || [];
-      const cPrice = p.currentPrice || (vars[0] ? vars[0].price : 1999);
-      const oPrice = p.originalPrice || (vars[0] ? vars[0].mrp : 2999);
+      const vars = Array.isArray(p.variants) && p.variants.length > 0 ? p.variants : [
+        { weight: 'Standard', price: Number(p.currentPrice) || 1999, mrp: Number(p.originalPrice) || 2999, unitPrice: `₹${Number(p.currentPrice) || 1999}` }
+      ];
+      const cPrice = Number(p.currentPrice) || (vars[0] ? Number(vars[0].price) : 1999);
+      const oPrice = Number(p.originalPrice) || (vars[0] ? Number(vars[0].mrp) : cPrice + 1000);
       supabaseClient.from('products').upsert([{
         id: p.id,
         title: p.title,
-        category: p.category,
-        rating: p.rating || 4.8,
-        reviews_count: p.reviewsCount || 100,
+        category: p.category || 'proteins',
+        rating: Number(p.rating) || 4.8,
+        reviews_count: Number(p.reviewsCount) || 100,
         current_price: cPrice,
         original_price: oPrice,
-        discount: p.discount || '',
-        in_stock: p.inStock !== false,
+        discount: p.discount || p.badgeText || '',
+        in_stock: p.inStock !== false && (p.stock === undefined || p.stock > 0),
         image: p.image || '',
-        gallery: p.gallery || [p.image],
+        gallery: Array.isArray(p.gallery) && p.gallery.length > 0 ? p.gallery : (p.image ? [p.image] : []),
         description: p.description || '',
         variants: vars,
         is_veg: p.isVeg !== false,
         badge_text: p.badgeText || '',
         is_bestseller: !!p.isBestseller,
-        stock: p.stock !== undefined ? p.stock : 30,
+        stock: p.stock !== undefined ? Number(p.stock) : 30,
         nutrition: p.nutrition || {}
       }]).then(({ error }) => {
-        if (error) console.warn('Supabase product sync warning:', error.message);
+        if (error) {
+          console.warn('Supabase product sync warning:', error.message);
+        } else {
+          console.log('⚡ Product synced to Supabase Cloud:', p.id);
+        }
       }).catch(err => console.warn('Supabase product sync error:', err));
     });
   }
@@ -2108,25 +2114,27 @@ async function syncProductsFromSupabase() {
 
     if (!error && Array.isArray(data) && data.length > 0) {
       const cloudProducts = data.map(p => {
-        const vars = Array.isArray(p.variants) ? p.variants : [];
+        const vars = Array.isArray(p.variants) && p.variants.length > 0 ? p.variants : [
+          { weight: 'Standard', price: Number(p.current_price) || 1999, mrp: Number(p.original_price) || 2999, unitPrice: `₹${Number(p.current_price) || 1999}` }
+        ];
         const cPrice = Number(p.current_price) || (vars[0] ? Number(vars[0].price) : 1999);
         const oPrice = Number(p.original_price) || (vars[0] ? Number(vars[0].mrp) : cPrice + 1000);
         return {
           id: p.id,
-          title: p.title,
+          title: p.title || 'PowerX Nutrition Supplement',
           category: p.category || 'proteins',
           rating: Number(p.rating) || 4.8,
           reviewsCount: Number(p.reviews_count) || 120,
           currentPrice: cPrice,
           originalPrice: oPrice,
-          discount: p.discount || '',
+          discount: p.discount || p.badge_text || '',
           inStock: p.in_stock !== false,
           image: p.image || '',
           gallery: Array.isArray(p.gallery) && p.gallery.length > 0 ? p.gallery : (p.image ? [p.image] : []),
           description: p.description || '',
           variants: vars,
           isVeg: p.is_veg !== false,
-          badgeText: p.badge_text || '',
+          badgeText: p.badge_text || p.discount || '',
           isBestseller: !!p.is_bestseller,
           stock: p.stock !== undefined ? Number(p.stock) : 30,
           nutrition: p.nutrition || {}
@@ -3224,6 +3232,11 @@ function saveProductForm() {
     variants.push({ weight: '1 kg Standard', price: 1999, mrp: 2499, unitPrice: '₹1999' });
   }
 
+  const vars = variants;
+  const cPrice = vars[0] ? Number(vars[0].price) : 1999;
+  const oPrice = vars[0] ? Number(vars[0].mrp) : cPrice + 1000;
+  const disc = badgeText || (oPrice > cPrice ? `${Math.round(((oPrice - cPrice) / oPrice) * 100)}% OFF` : '');
+
   const productObj = {
     id: id || ('prod-' + Date.now()),
     title,
@@ -3233,10 +3246,14 @@ function saveProductForm() {
     badgeText,
     stock,
     image,
+    currentPrice: cPrice,
+    originalPrice: oPrice,
+    discount: disc,
+    inStock: stock > 0,
     description: description || 'Premium certified authentic nutritional supplement.',
     isVeg,
     isBestseller,
-    variants,
+    variants: vars,
     nutrition: { protein: '25g', bcaa: '5.5g', scoops: '30 Servings' }
   };
 
@@ -3251,7 +3268,7 @@ function saveProductForm() {
     showAdminToast(`New product "${title}" added to store!`);
   }
 
-  saveProductsToStorage();
+  saveProductsToStorage(productObj);
   closeProductFormModal();
   renderProducts();
   renderDashboard();
@@ -3283,9 +3300,8 @@ function deleteProduct(productId) {
 function quickChangeProductCategory(productId, newCategory) {
   const p = AdminState.products.find(item => item.id === productId);
   if (!p) return;
-  const oldCategory = p.category;
   p.category = newCategory;
-  saveProductsToStorage();
+  saveProductsToStorage(p);
   showAdminToast(`Moved "${p.title.slice(0, 26)}..." to ${newCategory}`);
   renderProducts();
   renderDashboard();

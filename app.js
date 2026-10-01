@@ -1909,26 +1909,31 @@ async function syncStorefrontFromSupabase() {
     // 1. Fetch Products from Supabase Cloud
     const { data: prods, error: pErr } = await supabaseClient.from('products').select('*');
     if (!pErr && Array.isArray(prods) && prods.length > 0) {
-      PRODUCTS = prods.map(p => ({
-        id: p.id,
-        title: p.title,
-        category: p.category,
-        rating: Number(p.rating),
-        reviewsCount: Number(p.reviews_count),
-        currentPrice: Number(p.current_price),
-        originalPrice: Number(p.original_price),
-        discount: p.discount,
-        inStock: p.in_stock,
-        image: p.image,
-        gallery: p.gallery || [p.image],
-        description: p.description,
-        variants: p.variants || [],
-        isVeg: p.is_veg,
-        badgeText: p.badge_text,
-        isBestseller: p.is_bestseller,
-        stock: p.stock,
-        nutrition: p.nutrition || {}
-      }));
+      PRODUCTS = prods.map(p => {
+        const vars = Array.isArray(p.variants) && p.variants.length > 0 
+          ? p.variants 
+          : [{ weight: 'Standard', price: Number(p.current_price) || 1999, mrp: Number(p.original_price) || 2999, unitPrice: `₹${Number(p.current_price) || 1999}` }];
+        return {
+          id: p.id,
+          title: p.title || 'PowerX Nutrition Supplement',
+          category: p.category || 'proteins',
+          rating: Number(p.rating) || 4.8,
+          reviewsCount: Number(p.reviews_count) || 120,
+          currentPrice: Number(p.current_price) || (vars[0] ? Number(vars[0].price) : 1999),
+          originalPrice: Number(p.original_price) || (vars[0] ? Number(vars[0].mrp) : 2999),
+          discount: p.discount || p.badge_text || '',
+          inStock: p.in_stock !== false,
+          image: p.image || '',
+          gallery: Array.isArray(p.gallery) && p.gallery.length > 0 ? p.gallery : (p.image ? [p.image] : []),
+          description: p.description || '',
+          variants: vars,
+          isVeg: p.is_veg !== false,
+          badgeText: p.badge_text || p.discount || '',
+          isBestseller: !!p.is_bestseller,
+          stock: p.stock !== undefined ? Number(p.stock) : 30,
+          nutrition: p.nutrition || {}
+        };
+      });
       try {
         localStorage.setItem('POWERX_PRODUCTS_STORAGE', JSON.stringify(PRODUCTS));
       } catch(e) {}
@@ -2083,25 +2088,31 @@ function renderHealthFoodProducts(catFilter, tabBtn = null) {
 }
 
 function renderProductCards(grid, items) {
-  if (items.length === 0) {
+  if (!items || items.length === 0) {
     grid.innerHTML = `<div style="grid-column: 1/-1; text-align: center; padding: 20px; color: #64748b;">No products in this section right now.</div>`;
     return;
   }
 
   grid.innerHTML = items.map(p => {
+    const variants = Array.isArray(p.variants) && p.variants.length > 0 
+      ? p.variants 
+      : [{ weight: 'Standard', price: p.currentPrice || 1999, mrp: p.originalPrice || 2499, unitPrice: '' }];
     const selectedVariantIdx = state.selectedProductVariants[p.id] || 0;
-    const variant = p.variants[selectedVariantIdx];
+    const variant = variants[selectedVariantIdx] || variants[0];
+    const priceVal = Number(variant.price) || Number(p.currentPrice) || 0;
+    const mrpVal = Number(variant.mrp) || Number(p.originalPrice) || priceVal;
+    const unitPriceText = variant.unitPrice || `₹${priceVal}`;
 
     return `
       <div class="product-card" id="card-${p.id}">
         <div class="card-badges-row">
-          ${p.badgeText ? `<span class="discount-badge">${p.badgeText}</span>` : '<span></span>'}
+          ${p.badgeText ? `<span class="discount-badge">${escapeHtml(p.badgeText)}</span>` : '<span></span>'}
           ${p.isBestseller ? `<span class="bestseller-badge">Bestseller</span>` : ''}
         </div>
 
         <div class="card-img-wrapper" onclick="quickViewProduct('${p.id}')">
           ${p.image ? `
-            <img src="${p.image}" alt="${p.title}" class="product-real-img" loading="eager" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+            <img src="${p.image}" alt="${escapeHtml(p.title)}" class="product-real-img" loading="eager" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
             <div class="product-placeholder-icon" style="display:none; width:100%; height:100%; flex-direction:column; align-items:center; justify-content:center; color:#94a3b8;">
               <i class="fa-solid fa-bottle-droplet" style="font-size:2.8rem; margin-bottom:6px; color:#cbd5e1;"></i>
               <span style="font-size:0.65rem; font-weight:700; text-transform:uppercase; letter-spacing:0.5px; color:#94a3b8;">PowerX Genuine</span>
@@ -2121,12 +2132,12 @@ function renderProductCards(grid, items) {
           <span class="${p.isVeg ? 'veg-icon' : 'non-veg-icon'}" title="${p.isVeg ? '100% Vegetarian' : 'Non-Vegetarian'}"></span>
         </div>
 
-        <h3 class="card-product-title" onclick="quickViewProduct('${p.id}')" title="${p.title}">${p.title}</h3>
+        <h3 class="card-product-title" onclick="quickViewProduct('${p.id}')" title="${escapeHtml(p.title)}">${escapeHtml(p.title)}</h3>
 
         <div class="variant-select-box">
           <select class="variant-dropdown" onchange="changeProductVariant('${p.id}', this.value)">
-            ${p.variants.map((v, idx) => `
-              <option value="${idx}" ${idx === selectedVariantIdx ? 'selected' : ''}>${v.weight}</option>
+            ${variants.map((v, idx) => `
+              <option value="${idx}" ${idx === selectedVariantIdx ? 'selected' : ''}>${escapeHtml(v.weight)}</option>
             `).join('')}
           </select>
           <i class="fa-solid fa-chevron-down variant-caret"></i>
@@ -2134,10 +2145,10 @@ function renderProductCards(grid, items) {
 
         <div class="card-price-block">
           <div class="price-row">
-            <span class="selling-price" id="price-${p.id}">₹${variant.price.toLocaleString()}</span>
-            <span class="mrp-price" id="mrp-${p.id}">MRP: ₹${variant.mrp.toLocaleString()}</span>
+            <span class="selling-price" id="price-${p.id}">₹${priceVal.toLocaleString()}</span>
+            <span class="mrp-price" id="mrp-${p.id}">MRP: ₹${mrpVal.toLocaleString()}</span>
           </div>
-          <div class="unit-price" id="unit-${p.id}">${variant.unitPrice}</div>
+          <div class="unit-price" id="unit-${p.id}">${escapeHtml(unitPriceText)}</div>
         </div>
       </div>
     `;
@@ -2162,18 +2173,23 @@ function filterHealthFoodCategory(cat, btn) {
 
 // Live variant change
 function changeProductVariant(productId, variantIdx) {
-  state.selectedProductVariants[productId] = parseInt(variantIdx);
+  const vIdx = parseInt(variantIdx) || 0;
+  state.selectedProductVariants[productId] = vIdx;
   const p = PRODUCTS.find(item => item.id === productId);
   if (!p) return;
 
-  const variant = p.variants[variantIdx];
+  const vars = Array.isArray(p.variants) && p.variants.length > 0 ? p.variants : [{ price: p.currentPrice || 0, mrp: p.originalPrice || 0, unitPrice: '' }];
+  const variant = vars[vIdx] || vars[0];
   const priceEl = document.getElementById(`price-${productId}`);
   const mrpEl = document.getElementById(`mrp-${productId}`);
   const unitEl = document.getElementById(`unit-${productId}`);
 
-  if (priceEl) priceEl.innerText = `₹${variant.price.toLocaleString()}`;
-  if (mrpEl) mrpEl.innerText = `MRP: ₹${variant.mrp.toLocaleString()}`;
-  if (unitEl) unitEl.innerText = variant.unitPrice;
+  const pVal = Number(variant.price) || 0;
+  const mVal = Number(variant.mrp) || pVal;
+
+  if (priceEl) priceEl.innerText = `₹${pVal.toLocaleString()}`;
+  if (mrpEl) mrpEl.innerText = `MRP: ₹${mVal.toLocaleString()}`;
+  if (unitEl) unitEl.innerText = variant.unitPrice || `₹${pVal}`;
 }
 
 // ==========================================
@@ -3121,7 +3137,8 @@ function scrollToSection(id) {
 }
 
 function escapeHtml(str) {
-  return str.replace(/[&<>'"]/g, 
+  if (str === null || str === undefined) return '';
+  return String(str).replace(/[&<>'"]/g, 
     tag => ({
       '&': '&amp;',
       '<': '&lt;',
@@ -3343,52 +3360,65 @@ function renderCombosSection() {
   if (!container) return;
 
   const combos = getCombosData();
-  if (combos.length === 0) {
+  if (!combos || combos.length === 0) {
     container.innerHTML = `<div style="text-align:center; padding:20px; color:#64748b;">No active combos available right now.</div>`;
     return;
   }
 
   container.innerHTML = combos.map(c => {
-    const savingsAmount = (c.mrp || 0) - (c.price || 0);
-    const savingsPct = c.mrp ? Math.round((savingsAmount / c.mrp) * 100) : 0;
+    const cPrice = Number(c.price) || 0;
+    const cMrp = Number(c.mrp || c.original_price) || Math.round(cPrice * 1.3);
+    const savingsAmount = Math.max(0, cMrp - cPrice);
+    const savingsPct = cMrp > 0 ? Math.round((savingsAmount / cMrp) * 100) : 0;
+    const itemsList = Array.isArray(c.items) ? c.items : [];
     
     return `
       <div class="combo-card" id="combo-${c.id}">
         <div class="combo-card-badge-row">
-          <span class="combo-savings-tag">${c.badgeText || `SAVE ₹${savingsAmount.toLocaleString()} (${savingsPct}% OFF)`}</span>
+          <span class="combo-savings-tag">${escapeHtml(c.badgeText || c.badge || (savingsAmount > 0 ? `SAVE ₹${savingsAmount.toLocaleString()} (${savingsPct}% OFF)` : 'Super Saver'))}</span>
           <span class="combo-type-tag"><i class="fa-solid fa-leaf"></i> 100% Authentic</span>
         </div>
 
         <div class="combo-items-visual-row">
-          ${(c.items || []).map((item, idx) => `
-            <div class="combo-item-thumb-box" title="${escapeHtml(item.name)}">
-              <img src="${item.image}" alt="${escapeHtml(item.name)}" loading="lazy">
-            </div>
-            ${idx < (c.items.length - 1) ? '<div class="combo-plus-connector"><i class="fa-solid fa-plus"></i></div>' : ''}
-          `).join('')}
+          ${itemsList.map((item, idx) => {
+            const prod = (typeof item === 'string') ? PRODUCTS.find(p => p.id === item || p.title === item) : null;
+            const itemName = (typeof item === 'object' && item && item.name) ? item.name : (prod ? prod.title : String(item || ''));
+            const itemImg = (typeof item === 'object' && item && item.image) ? item.image : (prod ? prod.image : 'assets/products/gn-anabolic-gainer-3kg.jpeg');
+            return `
+              <div class="combo-item-thumb-box" title="${escapeHtml(itemName)}">
+                <img src="${itemImg}" alt="${escapeHtml(itemName)}" loading="lazy" onerror="this.src='assets/products/gn-anabolic-gainer-3kg.jpeg'">
+              </div>
+              ${idx < (itemsList.length - 1) ? '<div class="combo-plus-connector"><i class="fa-solid fa-plus"></i></div>' : ''}
+            `;
+          }).join('')}
         </div>
 
         <h4 class="combo-title">${escapeHtml(c.title)}</h4>
 
         <ul class="combo-items-breakdown">
-          ${(c.items || []).map(item => `
-            <li class="combo-item-row-desc">
-              <i class="fa-solid fa-circle-check"></i>
-              <span><strong>${escapeHtml(item.name)}</strong> ${item.desc ? `&bull; ${escapeHtml(item.desc)}` : ''}</span>
-            </li>
-          `).join('')}
+          ${itemsList.map(item => {
+            const prod = (typeof item === 'string') ? PRODUCTS.find(p => p.id === item || p.title === item) : null;
+            const itemName = (typeof item === 'object' && item && item.name) ? item.name : (prod ? prod.title : String(item || ''));
+            const itemDesc = (typeof item === 'object' && item && item.desc) ? item.desc : (prod ? (prod.variants && prod.variants[0] ? prod.variants[0].weight : '') : '');
+            return `
+              <li class="combo-item-row-desc">
+                <i class="fa-solid fa-circle-check"></i>
+                <span><strong>${escapeHtml(itemName)}</strong> ${itemDesc ? `&bull; ${escapeHtml(itemDesc)}` : ''}</span>
+              </li>
+            `;
+          }).join('')}
         </ul>
 
         <div class="combo-price-block">
           <div class="combo-price-left">
-            <span class="combo-main-price">₹${(c.price || 0).toLocaleString()}</span>
-            <span class="combo-mrp-price">₹${(c.mrp || 0).toLocaleString()}</span>
+            <span class="combo-main-price">₹${cPrice.toLocaleString()}</span>
+            <span class="combo-mrp-price">₹${cMrp.toLocaleString()}</span>
           </div>
-          <span class="combo-discount-text">Save ₹${savingsAmount.toLocaleString()}</span>
+          <span class="combo-discount-text">${savingsAmount > 0 ? `Save ₹${savingsAmount.toLocaleString()}` : ''}</span>
         </div>
 
         <button class="btn-add-combo-cart" onclick="addComboToCart('${c.id}')">
-          <i class="fa-solid fa-cart-shopping"></i> Add Combo to Cart &bull; ₹${(c.price || 0).toLocaleString()}
+          <i class="fa-solid fa-cart-shopping"></i> Add Combo to Cart &bull; ₹${cPrice.toLocaleString()}
         </button>
       </div>
     `;
