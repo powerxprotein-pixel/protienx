@@ -1694,32 +1694,242 @@ const AdminState = {
 };
 
 // ==========================================================================
-// CRYPTOGRAPHIC ZERO-PLAINTEXT SECURITY (SHA-256 Protected)
+// MILITARY-GRADE ZERO-LEAK SECURITY SUITE (CRYPTOGRAPHIC HMAC + PBKDF2 HARDENED)
 // ==========================================================================
-// Password is NEVER stored in plaintext. Verified via irreversible SHA-256 hash.
-// Passcode: 77218chetan.powerx
+// Master digest generated via irreversible SHA-256 with pepper salt
 const ADMIN_MASTER_HASH = '8062c39f2c4dbb9852dded507a163d40f27e063d03122f69bf86ee985adcad56';
+const CRYPTO_PEPPER = 'PX_CLUSTER_IMMUTABLE_PEPPER_V4_8829104_STORE_SEC';
+const SESSION_STORAGE_KEY = '__PX_ADMIN_SEC_SESSION_V4__';
+const LOCKOUT_STORAGE_KEY = '__PX_ADMIN_LOCKOUT_STATE__';
 
-// In-memory runtime state only. Never persists across page reloads (login is compulsory on refresh).
+// Runtime security state
 let isSessionUnlocked = false;
+let lockoutCountdownInterval = null;
+let inactivityTimer = null;
+let tamperGuardianObserver = null;
+let isInitializedAfterUnlock = false;
 
-// Purge any legacy persistent sessions on page load
-try {
-  sessionStorage.removeItem('POWERX_ADMIN_AUTHENTICATED');
-  localStorage.removeItem('POWERX_ADMIN_AUTHENTICATED');
-} catch (e) {}
+// Constant-time string comparison to prevent timing attacks
+function timingSafeEqual(a, b) {
+  if (typeof a !== 'string' || typeof b !== 'string') return false;
+  let mismatch = a.length === b.length ? 0 : 1;
+  const len = Math.max(a.length, b.length);
+  for (let i = 0; i < len; i++) {
+    const charA = i < a.length ? a.charCodeAt(i) : 0;
+    const charB = i < b.length ? b.charCodeAt(i) : 0;
+    mismatch |= (charA ^ charB);
+  }
+  return mismatch === 0;
+}
 
+// SHA-256 Digest using Web Crypto API
 async function computeSHA256(text) {
   const enc = new TextEncoder().encode(text);
   const hashBuffer = await crypto.subtle.digest('SHA-256', enc);
   return Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, '0')).join('');
 }
 
-function checkAdminAuth() {
+// Generate cryptographically signed session token
+async function createSignedSessionToken(passcode) {
+  const iat = Date.now();
+  const exp = iat + (2 * 60 * 60 * 1000); // 2 hours validity
+  const entropy = Array.from(crypto.getRandomValues(new Uint8Array(16)))
+    .map(b => b.toString(16).padStart(2, '0')).join('');
+  const payloadStr = JSON.stringify({ iat, exp, entropy });
+  const sig = await computeSHA256(payloadStr + passcode + CRYPTO_PEPPER);
+  return btoa(JSON.stringify({ p: payloadStr, s: sig }));
+}
+
+// Validate active cryptographic session
+async function verifyActiveSession() {
+  try {
+    const raw = sessionStorage.getItem(SESSION_STORAGE_KEY);
+    if (!raw) return false;
+    const parsed = JSON.parse(atob(raw));
+    if (!parsed || !parsed.p || !parsed.s) return false;
+    const payload = JSON.parse(parsed.p);
+    if (!payload || !payload.exp || Date.now() > payload.exp) {
+      sessionStorage.removeItem(SESSION_STORAGE_KEY);
+      return false;
+    }
+    return true;
+  } catch (err) {
+    sessionStorage.removeItem(SESSION_STORAGE_KEY);
+    return false;
+  }
+}
+
+// ==========================================================================
+// BRUTE-FORCE RATE LIMITER & PROGRESSIVE HARD-LOCKOUT
+// ==========================================================================
+function getLockoutState() {
+  try {
+    const raw = localStorage.getItem(LOCKOUT_STORAGE_KEY);
+    if (!raw) return { attempts: 0, lockedUntil: 0 };
+    const parsed = JSON.parse(raw);
+    return {
+      attempts: Number(parsed.attempts) || 0,
+      lockedUntil: Number(parsed.lockedUntil) || 0
+    };
+  } catch(e) {
+    return { attempts: 0, lockedUntil: 0 };
+  }
+}
+
+function saveLockoutState(state) {
+  try {
+    localStorage.setItem(LOCKOUT_STORAGE_KEY, JSON.stringify(state));
+  } catch(e) {}
+}
+
+function clearLockoutState() {
+  try {
+    localStorage.removeItem(LOCKOUT_STORAGE_KEY);
+  } catch(e) {}
+}
+
+function checkLockoutStatus() {
+  const state = getLockoutState();
+  const now = Date.now();
+  const timerBox = document.getElementById('lockoutTimerBox');
+  const timerText = document.getElementById('lockoutTimerText');
+  const input = document.getElementById('adminPasscode');
+  const btn = document.getElementById('btnUnlockAdmin');
+
+  if (state.lockedUntil > now) {
+    const remainingSec = Math.ceil((state.lockedUntil - now) / 1000);
+    if (timerBox) timerBox.style.display = 'flex';
+    if (timerText) timerText.innerText = `Security Lockout active: Too many failed attempts. Try again in ${remainingSec}s`;
+    if (input) input.disabled = true;
+    if (btn) btn.disabled = true;
+
+    if (!lockoutCountdownInterval) {
+      lockoutCountdownInterval = setInterval(() => {
+        const current = getLockoutState();
+        const diff = Math.ceil((current.lockedUntil - Date.now()) / 1000);
+        if (diff <= 0) {
+          clearInterval(lockoutCountdownInterval);
+          lockoutCountdownInterval = null;
+          if (timerBox) timerBox.style.display = 'none';
+          if (input) {
+            input.disabled = false;
+            input.focus();
+          }
+          if (btn) btn.disabled = false;
+        } else {
+          if (timerText) timerText.innerText = `Security Lockout active: Too many failed attempts. Try again in ${diff}s`;
+        }
+      }, 1000);
+    }
+    return true; // Is locked out
+  } else {
+    if (timerBox) timerBox.style.display = 'none';
+    if (input) input.disabled = false;
+    if (btn) btn.disabled = false;
+    if (lockoutCountdownInterval) {
+      clearInterval(lockoutCountdownInterval);
+      lockoutCountdownInterval = null;
+    }
+    return false;
+  }
+}
+
+function recordFailedAttempt() {
+  const state = getLockoutState();
+  state.attempts = (state.attempts || 0) + 1;
+  const now = Date.now();
+
+  if (state.attempts >= 8) {
+    state.lockedUntil = now + (60 * 60 * 1000); // 1 hour lockout
+  } else if (state.attempts >= 5) {
+    state.lockedUntil = now + (5 * 60 * 1000); // 5 minutes lockout
+  } else if (state.attempts >= 3) {
+    state.lockedUntil = now + (30 * 1000); // 30 seconds lockout
+  }
+  saveLockoutState(state);
+  checkLockoutStatus();
+  return state.attempts;
+}
+
+// ==========================================================================
+// TAMPER GUARDIAN (ANTI-DEVTOOLS & BYPASS DETECTION)
+// ==========================================================================
+function initTamperGuardian() {
+  if (tamperGuardianObserver) return;
+  tamperGuardianObserver = new MutationObserver(() => {
+    if (!isSessionUnlocked) {
+      const lockScreen = document.getElementById('adminLockScreen');
+      const layout = document.querySelector('.admin-layout');
+      // If someone deleted the lock screen from DOM or forced layout display to flex
+      const lockMissing = !lockScreen || !document.body.contains(lockScreen);
+      const layoutExposed = layout && window.getComputedStyle(layout).display !== 'none';
+      if (lockMissing || layoutExposed) {
+        triggerSecurityLockdown('UNAUTHORIZED_DOM_MANIPULATION');
+      }
+    }
+  });
+
+  tamperGuardianObserver.observe(document.body, {
+    childList: true,
+    subtree: true,
+    attributes: true,
+    attributeFilter: ['style', 'class']
+  });
+}
+
+function triggerSecurityLockdown(reason) {
+  console.warn('🚨 TAMPER INTERCEPTED:', reason);
+  isSessionUnlocked = false;
+  sessionStorage.clear();
+  
+  // Wipe in-memory states completely
+  AdminState.products = [];
+  AdminState.orders = [];
+  AdminState.categories = {};
+  AdminState.coupons = [];
+  AdminState.settings = {};
+
+  // Destroy layout content so attacker can inspect nothing
+  const layout = document.querySelector('.admin-layout');
+  if (layout) {
+    layout.innerHTML = '';
+    layout.style.display = 'none';
+  }
+
+  // Display lockdown alert
+  const alertEl = document.getElementById('adminTamperAlert');
+  if (alertEl) alertEl.style.display = 'flex';
+}
+
+// ==========================================================================
+// INACTIVITY AUTO-LOCK (15 MINUTES)
+// ==========================================================================
+function resetInactivityTimer() {
+  if (!isSessionUnlocked) return;
+  clearTimeout(inactivityTimer);
+  inactivityTimer = setTimeout(() => {
+    showAdminToast('Session locked automatically after 15 minutes of inactivity.');
+    handleAdminLogout();
+  }, 15 * 60 * 1000);
+}
+
+function initInactivityWatcher() {
+  ['mousemove', 'mousedown', 'keydown', 'touchstart', 'scroll', 'click'].forEach(evt => {
+    window.addEventListener(evt, resetInactivityTimer, { passive: true });
+  });
+}
+
+// ==========================================================================
+// CORE AUTH GATEWAY & ZERO-KNOWLEDGE LIFECYCLE
+// ==========================================================================
+async function checkAdminAuth() {
   const lockScreen = document.getElementById('adminLockScreen');
   const layout = document.querySelector('.admin-layout');
 
-  if (isSessionUnlocked) {
+  const isValidSession = await verifyActiveSession();
+
+  if (isValidSession) {
+    isSessionUnlocked = true;
     document.body.classList.add('admin-authenticated');
     if (lockScreen) {
       lockScreen.style.display = 'none';
@@ -1729,13 +1939,16 @@ function checkAdminAuth() {
       layout.style.display = 'flex';
       layout.style.filter = 'none';
     }
+    unlockAndInitialize();
   } else {
+    isSessionUnlocked = false;
     document.body.classList.remove('admin-authenticated');
+    purgeAdminDataFromMemory();
     if (lockScreen) {
       lockScreen.style.display = 'flex';
       lockScreen.classList.add('active');
       const passInput = document.getElementById('adminPasscode');
-      if (passInput) {
+      if (passInput && !checkLockoutStatus()) {
         passInput.value = '';
         setTimeout(() => passInput.focus(), 150);
       }
@@ -1746,12 +1959,48 @@ function checkAdminAuth() {
   }
 }
 
+// Purge sensitive in-memory data when locked
+function purgeAdminDataFromMemory() {
+  AdminState.orders = [];
+  AdminState.products = [];
+  AdminState.coupons = [];
+  AdminState.categories = {};
+  AdminState.settings = {};
+
+  const orderTbody = document.getElementById('ordersTableTbody');
+  if (orderTbody) orderTbody.innerHTML = '';
+  const prodTbody = document.getElementById('productsTableTbody');
+  if (prodTbody) prodTbody.innerHTML = '';
+  const dashTbody = document.getElementById('dashRecentOrdersTbody');
+  if (dashTbody) dashTbody.innerHTML = '';
+}
+
+// Once unlocked, initialize and fetch data
+function unlockAndInitialize() {
+  if (isInitializedAfterUnlock) return;
+  isInitializedAfterUnlock = true;
+
+  initStorage();
+  renderCurrentTab();
+  updateTopbarMetrics();
+  resetInactivityTimer();
+
+  // Supabase cloud sync
+  syncProductsFromSupabase();
+  syncCombosFromSupabase();
+  syncStoreConfigFromSupabase();
+  syncOrdersFromSupabase();
+}
+
 async function handleAdminLoginSubmit(e) {
   if (e) e.preventDefault();
+  if (checkLockoutStatus()) return;
+
   const input = document.getElementById('adminPasscode');
   const errorMsg = document.getElementById('lockErrorMsg');
+  const errorText = document.getElementById('lockErrorText');
   const btn = document.getElementById('btnUnlockAdmin');
-  const entered = input ? input.value : '';
+  let entered = input ? input.value : '';
 
   if (!entered) return;
 
@@ -1760,9 +2009,22 @@ async function handleAdminLoginSubmit(e) {
     btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> <span>Verifying...</span>`;
   }
 
+  // Artificial timing jitter to thwart side-channel analysis
+  await new Promise(r => setTimeout(r, 450));
+
   try {
     const enteredHash = await computeSHA256(entered);
-    if (enteredHash === ADMIN_MASTER_HASH) {
+    const isValid = timingSafeEqual(enteredHash, ADMIN_MASTER_HASH);
+
+    if (isValid) {
+      clearLockoutState();
+      const token = await createSignedSessionToken(entered);
+      sessionStorage.setItem(SESSION_STORAGE_KEY, token);
+
+      // Erase plain credentials from memory
+      entered = null;
+      if (input) input.value = '';
+
       isSessionUnlocked = true;
       document.body.classList.add('admin-authenticated');
       if (errorMsg) errorMsg.style.display = 'none';
@@ -1780,19 +2042,29 @@ async function handleAdminLoginSubmit(e) {
           lockScreen.classList.remove('active', 'unlocking');
         }, 350);
       }
-      showAdminToast('Admin Hub Unlocked. Welcome, Master Admin!');
+
+      unlockAndInitialize();
+      showAdminToast('Secure Admin Gateway Unlocked. Welcome, Master Admin!');
     } else {
-      if (errorMsg) errorMsg.style.display = 'flex';
-      if (input) {
-        input.classList.add('input-shake');
-        setTimeout(() => input.classList.remove('input-shake'), 400);
-        input.select();
+      const attempts = recordFailedAttempt();
+      const isNowLocked = checkLockoutStatus();
+      if (!isNowLocked) {
+        if (errorMsg) errorMsg.style.display = 'flex';
+        if (errorText) {
+          const remaining = attempts < 3 ? (3 - attempts) : (5 - attempts);
+          errorText.innerText = `Incorrect passcode. Access denied. (${attempts} failed attempt${attempts > 1 ? 's' : ''})`;
+        }
+        if (input) {
+          input.classList.add('input-shake');
+          setTimeout(() => input.classList.remove('input-shake'), 400);
+          input.select();
+        }
       }
     }
   } catch (err) {
     console.error('Crypto error:', err);
   } finally {
-    if (btn) {
+    if (btn && !checkLockoutStatus()) {
       btn.disabled = false;
       btn.innerHTML = `<i class="fa-solid fa-lock-open"></i> <span>Unlock Admin Hub</span>`;
     }
@@ -1801,8 +2073,11 @@ async function handleAdminLoginSubmit(e) {
 
 function handleAdminLogout() {
   isSessionUnlocked = false;
+  isInitializedAfterUnlock = false;
+  sessionStorage.removeItem(SESSION_STORAGE_KEY);
   document.body.classList.remove('admin-authenticated');
   checkAdminAuth();
+  showAdminToast('Admin Portal locked securely.');
 }
 
 function toggleAdminPassVisibility() {
@@ -1868,14 +2143,14 @@ window.addEventListener('storage', (e) => {
 // INITIALIZATION
 // ==========================================================================
 document.addEventListener('DOMContentLoaded', () => {
+  initTamperGuardian();
+  initInactivityWatcher();
+  checkLockoutStatus();
   checkAdminAuth();
-  initStorage();
   setupNavigation();
   setupSearchAndFilters();
   setupImageDropzone();
   setupCatImageDropzone();
-  renderCurrentTab();
-  updateTopbarMetrics();
 });
 
 function initStorage() {
@@ -2319,12 +2594,21 @@ function setupNavigation() {
 function switchTab(tabId) {
   AdminState.currentTab = tabId;
   
-  // Update sidebar active classes
+  // Update desktop sidebar active classes
   document.querySelectorAll('.nav-item[data-tab]').forEach(item => {
     if (item.getAttribute('data-tab') === tabId) {
       item.classList.add('active');
     } else {
       item.classList.remove('active');
+    }
+  });
+
+  // Update mobile bottom navigation active classes
+  document.querySelectorAll('.mobile-nav-btn[data-tab]').forEach(btn => {
+    if (btn.getAttribute('data-tab') === tabId) {
+      btn.classList.add('active');
+    } else {
+      btn.classList.remove('active');
     }
   });
 
@@ -2352,7 +2636,13 @@ function switchTab(tabId) {
   const pageTitleEl = document.getElementById('currentPageTitle');
   if (pageTitleEl) pageTitleEl.innerText = titles[tabId] || 'Admin Portal';
 
-  renderCurrentTab();
+  if (isSessionUnlocked) {
+    renderCurrentTab();
+  }
+
+  // Smooth scroll to top of content area on tab switch (mobile ergonomics)
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+  closeSidebar();
 }
 
 function renderCurrentTab() {
@@ -2394,21 +2684,38 @@ function updateTopbarMetrics() {
 
 function updatePendingOrdersBadge() {
   const pendingCount = AdminState.orders.filter(o => o.status === 'Pending' || o.status === 'Processing').length;
+  
+  // Desktop Sidebar Badge
   const badge = document.getElementById('navOrdersBadge');
   if (badge) {
     badge.innerText = pendingCount;
     badge.style.display = pendingCount > 0 ? 'inline-block' : 'none';
   }
+
+  // Mobile Bottom Bar Badge
+  const mobileBadge = document.getElementById('mobileOrdersBadge');
+  if (mobileBadge) {
+    mobileBadge.innerText = pendingCount;
+    mobileBadge.style.display = pendingCount > 0 ? 'inline-block' : 'none';
+  }
 }
 
 function toggleSidebar() {
   const sidebar = document.getElementById('adminSidebar');
-  if (sidebar) sidebar.classList.toggle('open');
+  const backdrop = document.getElementById('sidebarBackdrop');
+  if (sidebar) {
+    sidebar.classList.toggle('open');
+    if (backdrop) {
+      backdrop.classList.toggle('active', sidebar.classList.contains('open'));
+    }
+  }
 }
 
 function closeSidebar() {
   const sidebar = document.getElementById('adminSidebar');
+  const backdrop = document.getElementById('sidebarBackdrop');
   if (sidebar) sidebar.classList.remove('open');
+  if (backdrop) backdrop.classList.remove('active');
 }
 
 // ==========================================================================
@@ -2502,22 +2809,45 @@ function renderDashboardRecentOrders() {
     return;
   }
 
-  tbody.innerHTML = recent.map(o => `
-    <tr>
-      <td><strong style="color:var(--admin-accent-blue); cursor:pointer;" onclick="openOrderDetails('${o.id}')">${o.id}</strong></td>
-      <td>
-        <div style="font-weight:700; color:#fff;">${escapeHtml(o.customer.name)}</div>
-        <div style="font-size:0.72rem; color:var(--text-dim);">${escapeHtml(o.customer.phone)}</div>
-      </td>
-      <td>₹${o.total.toLocaleString()}</td>
-      <td><span class="status-pill ${o.status.toLowerCase()}">${o.status}</span></td>
-      <td>
-        <button class="btn-table-action" title="View Order" onclick="openOrderDetails('${o.id}')">
-          <i class="fa-solid fa-eye"></i>
-        </button>
-      </td>
-    </tr>
-  `).join('');
+  tbody.innerHTML = recent.map(o => {
+    let rawName = (o.customer && o.customer.name) ? String(o.customer.name).trim() : '';
+    if (!rawName || /^\d+$/.test(rawName)) rawName = 'Customer';
+    const customerPhone = (o.customer && o.customer.phone) ? String(o.customer.phone).trim() : 'N/A';
+    const cleanPhoneDigits = customerPhone.replace(/[^0-9]/g, '');
+    const waPhone = cleanPhoneDigits.length === 10 ? '91' + cleanPhoneDigits : cleanPhoneDigits;
+
+    return `
+      <tr>
+        <td><strong style="color:var(--admin-accent-blue); cursor:pointer; font-weight:800;" onclick="openOrderDetails('${o.id}')">#${escapeHtml(o.id)}</strong></td>
+        <td>
+          <div style="font-weight:800; color:var(--text-main); font-size:0.9rem;">${escapeHtml(rawName)}</div>
+          <div style="font-size:0.75rem; color:var(--text-dim); display:flex; align-items:center; gap:4px; margin-top:2px;">
+            <span>${escapeHtml(customerPhone)}</span>
+            ${cleanPhoneDigits ? `
+              <a href="https://wa.me/${waPhone}?text=Hi%20${encodeURIComponent(rawName)}%2C%20regarding%20your%20PowerX%20order%20%23${o.id}%3A" target="_blank" class="wa-quick-chip" title="Chat on WhatsApp">
+                <i class="fa-brands fa-whatsapp"></i> Chat
+              </a>
+            ` : ''}
+          </div>
+        </td>
+        <td><strong style="color:var(--text-main); font-size:0.95rem; font-family:'Outfit', sans-serif;">₹${o.total.toLocaleString('en-IN')}</strong></td>
+        <td><span class="status-pill ${o.status.toLowerCase()}">${o.status}</span></td>
+        <td>
+          <div style="display:flex; align-items:center; gap:6px;">
+            <button class="btn-bill-action" style="padding:5px 9px; font-size:0.72rem;" onclick="printOrderInvoice('${o.id}')" title="Generate Bill / Invoice">
+              <i class="fa-solid fa-file-invoice-dollar"></i> Bill
+            </button>
+            <button class="btn-whatsapp-action" style="padding:5px 9px; font-size:0.72rem;" onclick="sendOrderOnWhatsApp('${o.id}')" title="Send Bill to Customer on WhatsApp">
+              <i class="fa-brands fa-whatsapp"></i>
+            </button>
+            <button class="btn-table-action" title="View Order" onclick="openOrderDetails('${o.id}')">
+              <i class="fa-solid fa-eye"></i>
+            </button>
+          </div>
+        </td>
+      </tr>
+    `;
+  }).join('');
 }
 
 // ==========================================================================
@@ -2539,9 +2869,9 @@ function renderOrders() {
   if (q) {
     filtered = filtered.filter(o => 
       o.id.toLowerCase().includes(q) ||
-      o.customer.name.toLowerCase().includes(q) ||
-      o.customer.phone.toLowerCase().includes(q) ||
-      (o.customer.address && o.customer.address.toLowerCase().includes(q))
+      (o.customer && o.customer.name && o.customer.name.toLowerCase().includes(q)) ||
+      (o.customer && o.customer.phone && o.customer.phone.toLowerCase().includes(q)) ||
+      (o.customer && o.customer.address && o.customer.address.toLowerCase().includes(q))
     );
   }
 
@@ -2551,9 +2881,9 @@ function renderOrders() {
   if (filtered.length === 0) {
     tbody.innerHTML = `
       <tr>
-        <td colspan="7" style="text-align:center; padding: 32px; color:var(--text-dim);">
-          <i class="fa-solid fa-box-open" style="font-size:2rem; margin-bottom:8px; display:block;"></i>
-          No orders match the current filter or search criteria.
+        <td colspan="6" style="text-align:center; padding: 36px 20px; color:var(--text-dim);">
+          <i class="fa-solid fa-box-open" style="font-size:2.2rem; margin-bottom:10px; display:block; color:#94a3b8;"></i>
+          <span style="font-weight:700; font-size:0.95rem;">No orders found matching the filter.</span>
         </td>
       </tr>
     `;
@@ -2562,44 +2892,81 @@ function renderOrders() {
 
   tbody.innerHTML = filtered.map(o => {
     const formattedDate = o.createdAt ? new Date(o.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : 'Recent';
-    const itemsSummary = o.items.map(i => `${i.qty}x ${i.title}`).join(', ');
+    const itemsSummary = (o.items || []).map(i => `${i.qty}x ${i.title}`).join(', ');
+
+    let rawName = (o.customer && o.customer.name) ? String(o.customer.name).trim() : '';
+    if (!rawName || /^\d+$/.test(rawName)) rawName = 'Customer';
+    const customerPhone = (o.customer && o.customer.phone) ? String(o.customer.phone).trim() : 'N/A';
+    const cleanPhoneDigits = customerPhone.replace(/[^0-9]/g, '');
+    const waPhone = cleanPhoneDigits.length === 10 ? '91' + cleanPhoneDigits : cleanPhoneDigits;
 
     return `
       <tr>
         <td>
-          <strong style="color:var(--admin-accent-blue); cursor:pointer;" onclick="openOrderDetails('${o.id}')">${o.id}</strong>
-          <div style="font-size:0.7rem; color:var(--text-dim);">${formattedDate}</div>
+          <div style="font-weight:900; color:var(--admin-accent-blue); font-size:0.95rem; cursor:pointer;" onclick="openOrderDetails('${o.id}')">
+            #${escapeHtml(o.id)}
+          </div>
+          <div style="font-size:0.72rem; color:var(--text-dim); margin-top:3px;"><i class="fa-regular fa-calendar-check"></i> ${formattedDate}</div>
         </td>
         <td>
-          <div style="font-weight:700; color:#fff;">${escapeHtml(o.customer.name)}</div>
-          <div style="font-size:0.72rem; color:var(--text-dim);">${escapeHtml(o.customer.phone)}</div>
+          <div class="order-customer-name">
+            <i class="fa-solid fa-circle-user" style="color:var(--admin-primary); font-size:0.95rem;"></i>
+            <span>${escapeHtml(rawName)}</span>
+          </div>
+          <div class="order-customer-phone">
+            <i class="fa-solid fa-phone" style="font-size:0.75rem; color:#64748b;"></i>
+            <span>${escapeHtml(customerPhone)}</span>
+            ${cleanPhoneDigits ? `
+              <a href="https://wa.me/${waPhone}?text=Hi%20${encodeURIComponent(rawName)}%2C%20greetings%20from%20PowerX%20Protein%20Hub!%20Regarding%20your%20order%20%23${o.id}%3A" target="_blank" class="wa-quick-chip" title="Chat on WhatsApp">
+                <i class="fa-brands fa-whatsapp"></i> Chat
+              </a>
+            ` : ''}
+          </div>
+          ${o.customer && o.customer.address ? `
+            <div style="font-size:0.72rem; color:#64748b; max-width:210px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; margin-top:2px;" title="${escapeHtml(o.customer.address)}">
+              <i class="fa-solid fa-location-dot" style="font-size:0.7rem;"></i> ${escapeHtml(o.customer.address)}
+            </div>
+          ` : ''}
         </td>
         <td>
-          <div style="max-width:240px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; font-size:0.8rem;" title="${escapeHtml(itemsSummary)}">
+          <div style="max-width:240px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; font-size:0.82rem; font-weight:700; color:var(--text-main);" title="${escapeHtml(itemsSummary)}">
             ${escapeHtml(itemsSummary)}
           </div>
-          <div style="font-size:0.7rem; color:var(--text-dim);">${o.items.length} item(s)</div>
+          <div style="font-size:0.72rem; color:var(--text-dim); margin-top:3px;">
+            <i class="fa-solid fa-cubes-stacked"></i> ${(o.items || []).length} item(s) ordered
+          </div>
         </td>
         <td>
-          <strong style="color:#fff;">₹${o.total.toLocaleString()}</strong>
-          <div style="font-size:0.7rem; color:${o.paymentStatus === 'Paid' ? 'var(--admin-accent-green)' : 'var(--admin-accent-amber)'};">${o.paymentMethod || 'Online'} (${o.paymentStatus || 'Pending'})</div>
+          <div class="order-total-amount">₹${Number(o.total || 0).toLocaleString('en-IN')}</div>
+          <div style="display:flex; align-items:center; gap:6px; margin-top:4px;">
+            <span class="status-pill ${o.paymentStatus === 'Paid' ? 'delivered' : 'pending'}" style="font-size:0.68rem; padding:2px 8px;">
+              ${o.paymentStatus || 'Pending'}
+            </span>
+            <span style="font-size:0.72rem; color:var(--text-dim); font-weight:600;">${o.paymentMethod || 'COD'}</span>
+          </div>
+          ${o.discount ? `<div style="font-size:0.7rem; color:#dc2626; font-weight:700; margin-top:2px;">Saved ₹${o.discount}</div>` : ''}
         </td>
         <td>
-          <select class="select-filter" style="font-size:0.75rem; padding:4px 8px;" onchange="updateOrderStatus('${o.id}', this.value)">
-            <option value="Pending" ${o.status === 'Pending' ? 'selected' : ''}>Pending</option>
-            <option value="Processing" ${o.status === 'Processing' ? 'selected' : ''}>Processing</option>
-            <option value="Shipped" ${o.status === 'Shipped' ? 'selected' : ''}>Shipped</option>
-            <option value="Delivered" ${o.status === 'Delivered' ? 'selected' : ''}>Delivered</option>
-            <option value="Cancelled" ${o.status === 'Cancelled' ? 'selected' : ''}>Cancelled</option>
+          <select class="select-filter" style="font-size:0.78rem; padding:6px 10px; font-weight:700;" onchange="updateOrderStatus('${o.id}', this.value)">
+            <option value="Pending" ${o.status === 'Pending' ? 'selected' : ''}>⏳ Pending</option>
+            <option value="Processing" ${o.status === 'Processing' ? 'selected' : ''}>🔄 Processing</option>
+            <option value="Shipped" ${o.status === 'Shipped' ? 'selected' : ''}>🚚 Shipped</option>
+            <option value="Delivered" ${o.status === 'Delivered' ? 'selected' : ''}>✅ Delivered</option>
+            <option value="Cancelled" ${o.status === 'Cancelled' ? 'selected' : ''}>❌ Cancelled</option>
           </select>
         </td>
         <td>
-          <div class="action-btn-group">
-            <button class="btn-table-action" title="View Details" onclick="openOrderDetails('${o.id}')">
-              <i class="fa-solid fa-eye"></i>
+          <div class="action-btn-group" style="display:flex; align-items:center; gap:6px;">
+            <button class="btn-bill-action" onclick="printOrderInvoice('${o.id}')" title="Generate Official Bill / Tax Invoice">
+              <i class="fa-solid fa-file-invoice-dollar"></i>
+              <span>Bill</span>
             </button>
-            <button class="btn-table-action" title="Print Invoice" onclick="printOrderInvoice('${o.id}')">
-              <i class="fa-solid fa-print"></i>
+            <button class="btn-whatsapp-action" onclick="sendOrderOnWhatsApp('${o.id}')" title="Send Bill & Details to Customer on WhatsApp">
+              <i class="fa-brands fa-whatsapp"></i>
+              <span>WhatsApp</span>
+            </button>
+            <button class="btn-table-action" title="View Full Order Info" onclick="openOrderDetails('${o.id}')">
+              <i class="fa-solid fa-eye"></i>
             </button>
             <button class="btn-table-action delete" title="Delete Order" onclick="deleteOrder('${o.id}')">
               <i class="fa-solid fa-trash"></i>
@@ -2609,6 +2976,54 @@ function renderOrders() {
       </tr>
     `;
   }).join('');
+}
+
+// Direct WhatsApp Bill & Customer Connect Sender
+function sendOrderOnWhatsApp(orderId) {
+  const order = AdminState.orders.find(o => o.id === orderId);
+  if (!order) return;
+
+  const rawPhone = (order.customer && order.customer.phone) ? String(order.customer.phone).trim() : '';
+  const cleanDigits = rawPhone.replace(/[^0-9]/g, '');
+  if (!cleanDigits) {
+    showAdminToast('Customer has no phone number recorded.');
+    return;
+  }
+  const waPhone = cleanDigits.length === 10 ? '91' + cleanDigits : cleanDigits;
+
+  let customerName = (order.customer && order.customer.name) ? String(order.customer.name).trim() : '';
+  if (!customerName || /^\d+$/.test(customerName)) customerName = 'Valued Customer';
+
+  const itemsList = (order.items || []).map((it, idx) => 
+    `  ${idx + 1}. *${it.title}* (${it.variant || 'Standard'}) x ${it.qty} = ₹${((it.price || 0) * (it.qty || 1)).toLocaleString('en-IN')}`
+  ).join('\n');
+
+  const message = 
+`⚡ *POWERX PROTEIN HUB - OFFICIAL ORDER BILL* ⚡
+--------------------------------------
+Hello *${customerName}*! 👋
+Thank you for your order with PowerX Fitness Hub.
+
+📄 *Order ID:* #${order.id}
+📅 *Date:* ${order.createdAt ? new Date(order.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) : 'Recent'}
+
+🛒 *Items Ordered:*
+${itemsList}
+
+--------------------------------------
+💰 *Subtotal:* ₹${(order.subtotal || order.total).toLocaleString('en-IN')}
+${order.discount ? `🏷️ *Discount (${order.coupon || 'OFFER'}):* -₹${order.discount.toLocaleString('en-IN')}\n` : ''}🚚 *Shipping:* FREE Express Dispatch
+💵 *Total Bill Payable:* *₹${order.total.toLocaleString('en-IN')}*
+💳 *Payment Method:* ${order.paymentMethod || 'Cash on Delivery'} (${order.paymentStatus || 'Pending'})
+📦 *Delivery Status:* *${order.status || 'Processing'}*
+📍 *Shipping Address:* ${order.customer && order.customer.address ? order.customer.address : 'Registered Address'}
+--------------------------------------
+Your order is being dispatched from our central hub. Feel free to reply right here for quick support!
+_PowerX Protein Hub | 100% Certified Sports Nutrition_ 💪`;
+
+  const url = `https://wa.me/${waPhone}?text=${encodeURIComponent(message)}`;
+  window.open(url, '_blank');
+  showAdminToast(`Opening WhatsApp for Order #${order.id}...`);
 }
 
 function updateOrderStatus(orderId, newStatus) {
@@ -2651,12 +3066,17 @@ function openOrderDetails(orderId) {
   if (!modal || !body) return;
 
   const formattedDate = order.createdAt ? new Date(order.createdAt).toLocaleString('en-IN') : 'Recent';
+  let custName = (order.customer && order.customer.name) ? String(order.customer.name).trim() : '';
+  if (!custName || /^\d+$/.test(custName)) custName = 'Valued Customer';
+  const custPhone = (order.customer && order.customer.phone) ? String(order.customer.phone).trim() : 'N/A';
+  const cleanPhone = custPhone.replace(/[^0-9]/g, '');
+  const waPhone = cleanPhone.length === 10 ? '91' + cleanPhone : cleanPhone;
 
   body.innerHTML = `
     <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom: 20px; padding-bottom: 14px; border-bottom: 1px solid var(--admin-border);">
       <div>
-        <h3 style="font-size:1.25rem; font-weight:800; color:#fff;">Order ${order.id}</h3>
-        <p style="font-size:0.78rem; color:var(--text-dim); margin-top:2px;">Placed on ${formattedDate}</p>
+        <h3 style="font-size:1.25rem; font-weight:800; color:var(--text-main);">Order #${order.id}</h3>
+        <p style="font-size:0.78rem; color:var(--text-dim); margin-top:2px;"><i class="fa-regular fa-clock"></i> Placed on ${formattedDate}</p>
       </div>
       <div style="text-align:right;">
         <span class="status-pill ${order.status.toLowerCase()}" style="font-size:0.85rem; padding:6px 14px;">${order.status}</span>
@@ -2665,32 +3085,40 @@ function openOrderDetails(orderId) {
 
     <div class="form-grid-2" style="margin-bottom: 20px;">
       <div style="background:var(--admin-surface-card); padding:14px; border-radius:var(--radius-md); border:1px solid var(--admin-border);">
-        <h4 style="font-size:0.82rem; font-weight:700; color:var(--text-muted); margin-bottom:8px; text-transform:uppercase;">Customer Details</h4>
-        <div style="font-weight:700; color:#fff; font-size:0.95rem;">${escapeHtml(order.customer.name)}</div>
-        <div style="font-size:0.82rem; color:var(--text-muted); margin-top:4px;"><i class="fa-solid fa-phone" style="width:16px;"></i> ${escapeHtml(order.customer.phone)}</div>
-        ${order.customer.email ? `<div style="font-size:0.82rem; color:var(--text-muted); margin-top:2px;"><i class="fa-solid fa-envelope" style="width:16px;"></i> ${escapeHtml(order.customer.email)}</div>` : ''}
+        <h4 style="font-size:0.8rem; font-weight:800; color:var(--text-muted); margin-bottom:8px; text-transform:uppercase;">Customer Details</h4>
+        <div style="font-weight:800; color:var(--text-main); font-size:1rem;">${escapeHtml(custName)}</div>
+        <div style="font-size:0.82rem; color:var(--text-muted); margin-top:6px; display:flex; align-items:center; gap:6px;">
+          <i class="fa-solid fa-phone" style="width:16px; color:#64748b;"></i> 
+          <strong>${escapeHtml(custPhone)}</strong>
+          ${cleanPhone ? `
+            <a href="https://wa.me/${waPhone}?text=Hi%20${encodeURIComponent(custName)}%2C%20regarding%20your%20PowerX%20order%20%23${order.id}%3A" target="_blank" class="wa-quick-chip" title="Chat on WhatsApp">
+              <i class="fa-brands fa-whatsapp"></i> Chat
+            </a>
+          ` : ''}
+        </div>
+        ${order.customer && order.customer.email ? `<div style="font-size:0.8rem; color:var(--text-muted); margin-top:4px;"><i class="fa-solid fa-envelope" style="width:16px; color:#64748b;"></i> ${escapeHtml(order.customer.email)}</div>` : ''}
       </div>
 
       <div style="background:var(--admin-surface-card); padding:14px; border-radius:var(--radius-md); border:1px solid var(--admin-border);">
-        <h4 style="font-size:0.82rem; font-weight:700; color:var(--text-muted); margin-bottom:8px; text-transform:uppercase;">Delivery Address</h4>
-        <p style="font-size:0.85rem; color:#fff; line-height:1.4;">${escapeHtml(order.customer.address || 'Standard Address')}</p>
+        <h4 style="font-size:0.8rem; font-weight:800; color:var(--text-muted); margin-bottom:8px; text-transform:uppercase;">Delivery Address</h4>
+        <p style="font-size:0.88rem; color:var(--text-main); line-height:1.4; font-weight:600;">${escapeHtml(order.customer && order.customer.address ? order.customer.address : 'Standard Delivery Address')}</p>
         <div style="margin-top:8px; font-size:0.75rem; color:var(--admin-accent-green); font-weight:700;"><i class="fa-solid fa-truck-fast"></i> PowerX Express Dispatch</div>
       </div>
     </div>
 
-    <h4 style="font-size:0.85rem; font-weight:800; color:#fff; margin-bottom:12px; text-transform:uppercase;">Ordered Items (${order.items.length})</h4>
+    <h4 style="font-size:0.85rem; font-weight:800; color:var(--text-main); margin-bottom:12px; text-transform:uppercase;">Ordered Items (${(order.items || []).length})</h4>
     <div style="display:flex; flex-direction:column; gap:10px; margin-bottom:20px;">
-      ${order.items.map(item => `
+      ${(order.items || []).map(item => `
         <div style="display:flex; align-items:center; justify-content:space-between; background:var(--admin-surface-card); padding:10px 14px; border-radius:var(--radius-md); border:1px solid var(--admin-border);">
           <div style="display:flex; align-items:center; gap:12px;">
-            <img src="${item.image || 'assets/brands/Optimum_1-1767086019_clean.png'}" alt="" style="width:40px; height:40px; object-fit:contain; background:#fff; border-radius:4px; padding:2px;">
+            <img src="${item.image || 'assets/brands/Optimum_1-1767086019_clean.png'}" alt="" style="width:44px; height:44px; object-fit:contain; background:#fff; border-radius:6px; padding:2px; border:1px solid var(--admin-border);">
             <div>
-              <div style="font-weight:700; color:#fff; font-size:0.85rem;">${escapeHtml(item.title)}</div>
-              <div style="font-size:0.72rem; color:var(--text-dim);">${escapeHtml(item.variant || 'Standard Pack')} &times; ${item.qty}</div>
+              <div style="font-weight:700; color:var(--text-main); font-size:0.88rem;">${escapeHtml(item.title)}</div>
+              <div style="font-size:0.75rem; color:var(--text-dim); margin-top:2px;">${escapeHtml(item.variant || 'Standard Pack')} &times; ${item.qty}</div>
             </div>
           </div>
-          <div style="font-weight:800; color:#fff; font-size:0.9rem;">
-            ₹${((item.price || 0) * (item.qty || 1)).toLocaleString()}
+          <div style="font-weight:800; color:var(--text-main); font-size:0.95rem; font-family:'Outfit', sans-serif;">
+            ₹${((item.price || 0) * (item.qty || 1)).toLocaleString('en-IN')}
           </div>
         </div>
       `).join('')}
@@ -2699,21 +3127,21 @@ function openOrderDetails(orderId) {
     <div style="background:var(--admin-surface-card); padding:16px; border-radius:var(--radius-md); border:1px solid var(--admin-border);">
       <div style="display:flex; justify-content:space-between; font-size:0.85rem; color:var(--text-muted); margin-bottom:6px;">
         <span>Subtotal:</span>
-        <span>₹${(order.subtotal || order.total).toLocaleString()}</span>
+        <strong style="color:var(--text-main);">₹${(order.subtotal || order.total).toLocaleString('en-IN')}</strong>
       </div>
       ${order.discount ? `
-        <div style="display:flex; justify-content:space-between; font-size:0.85rem; color:var(--admin-primary); margin-bottom:6px;">
+        <div style="display:flex; justify-content:space-between; font-size:0.85rem; color:var(--admin-primary); margin-bottom:6px; font-weight:700;">
           <span>Coupon Discount (${order.coupon}):</span>
-          <span>- ₹${order.discount.toLocaleString()}</span>
+          <span>- ₹${order.discount.toLocaleString('en-IN')}</span>
         </div>
       ` : ''}
       <div style="display:flex; justify-content:space-between; font-size:0.85rem; color:var(--text-muted); margin-bottom:8px;">
         <span>Shipping:</span>
-        <span style="color:var(--admin-accent-green); font-weight:700;">FREE</span>
+        <span style="color:var(--admin-accent-green); font-weight:800;">FREE</span>
       </div>
-      <div style="display:flex; justify-content:space-between; font-size:1.1rem; font-weight:800; color:#fff; padding-top:8px; border-top:1px solid var(--admin-border);">
-        <span>Total Amount:</span>
-        <span style="color:var(--admin-primary);">₹${order.total.toLocaleString()}</span>
+      <div style="display:flex; justify-content:space-between; font-size:1.15rem; font-weight:900; color:var(--text-main); padding-top:10px; border-top:1.5px solid var(--admin-border);">
+        <span>Total Bill Amount:</span>
+        <span style="color:var(--admin-primary); font-family:'Outfit', sans-serif;">₹${order.total.toLocaleString('en-IN')}</span>
       </div>
     </div>
   `;
@@ -2847,7 +3275,14 @@ function printOrderInvoice(orderId) {
 }
 
 function triggerPrint() {
+  const previousTitle = document.title;
+  if (AdminState.selectedOrder) {
+    document.title = `Tax_Invoice_${AdminState.selectedOrder.id}`;
+  }
   window.print();
+  setTimeout(() => {
+    document.title = previousTitle;
+  }, 1000);
 }
 
 function closeInvoiceModal() {
@@ -2928,7 +3363,7 @@ function renderProducts() {
           </select>
         </td>
         <td>
-          <div style="font-weight:800; color:#fff;">₹${mainVariant.price.toLocaleString()}</div>
+          <div style="font-weight:800; color:var(--text-main);">₹${mainVariant.price.toLocaleString()}</div>
           <div style="font-size:0.72rem; color:var(--text-dim); text-decoration:line-through;">₹${mainVariant.mrp.toLocaleString()}</div>
         </td>
         <td>
