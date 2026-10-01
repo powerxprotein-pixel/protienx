@@ -140,11 +140,11 @@ def seed():
                 "announcementText": "VOLCANIC NUTRITION SALE IS LIVE!",
                 "promoDiscountHeadline": "Flat 60% OFF + Extra 5% with code",
                 "promoCouponCode": "POWERX5",
-                "contactPhone": "+91 98765 43210",
-                "contactEmail": "support@powerxprotein.com",
+                "contactPhone": "+91 77218 15318",
+                "contactEmail": "powerxprotein@gmail.com",
                 "freeShippingThreshold": 999,
                 "gstNumber": "27AABCP1234F1Z8",
-                "storeAddress": "Shop 14, PowerX Fitness Hub, Station Road, Boisar, Maharashtra 401501"
+                "storeAddress": "Shop 14, PowerX Fitness Hub, Ostwal, Maan, Boisar, Maharashtra 401501"
             }
         }
     ]

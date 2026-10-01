@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+        xmlns:geo="http://www.google.com/geo/schemas/sitemap/1.0"
+        xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
+  <url>
+    <loc>https://powerxprotein.com/</loc>
+    <lastmod>2026-10-01</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>1.0</priority>
+    <image:image>
+      <image:loc>https://powerxprotein.com/assets/laptop%20banner.png</image:loc>
+      <image:title>PowerX Protein Hub Boisar - Authentic Whey Protein &amp; Supplements</image:title>
+      <image:caption>#1 Supplement Store in Boisar and Tarapur MIDC with Same-Day Express Delivery</image:caption>
+    </image:image>
+  </url>
+</urlset>

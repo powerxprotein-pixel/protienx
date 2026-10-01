@@ -1667,11 +1667,11 @@ const DEFAULT_SETTINGS = {
   announcementText: 'VOLCANIC NUTRITION SALE IS LIVE!',
   promoDiscountHeadline: 'Flat 60% OFF + Extra 5% with code',
   promoCouponCode: 'POWERX5',
-  contactPhone: '+91 98765 43210',
-  contactEmail: 'support@powerxprotein.com',
+  contactPhone: '+91 77218 15318',
+  contactEmail: 'powerxprotein@gmail.com',
   freeShippingThreshold: 999,
   gstNumber: '27AABCP1234F1Z8',
-  storeAddress: 'Shop 14, PowerX Fitness Hub, Station Road, Boisar, Maharashtra 401501'
+  storeAddress: 'Shop 14, PowerX Fitness Hub, Ostwal, Maan, Boisar, Maharashtra 401501'
 };
 
 // Admin State
@@ -3213,7 +3213,7 @@ function printOrderInvoice(orderId) {
       </div>
       <div style="text-align:right;">
         <strong style="color:#111827; text-transform:uppercase;">Dispatched From:</strong>
-        <div style="color:#4b5563; max-width:260px; margin-top:4px;">${AdminState.settings.storeAddress || 'PowerX Hub, Station Road, Boisar, MH 401501'}</div>
+        <div style="color:#4b5563; max-width:260px; margin-top:4px;">${AdminState.settings.storeAddress || 'PowerX Hub, Ostwal, Maan, Boisar, MH 401501'}</div>
         <div style="color:#4b5563; margin-top:2px;">Payment: <strong>${order.paymentMethod || 'Prepaid'}</strong></div>
       </div>
     </div>
@@ -4369,11 +4369,11 @@ function renderSettings() {
   document.getElementById('settAnnouncement').value = AdminState.settings.announcementText || 'VOLCANIC NUTRITION SALE IS LIVE!';
   document.getElementById('settPromoDiscount').value = AdminState.settings.promoDiscountHeadline || 'Flat 60% OFF + Extra 5% with code';
   document.getElementById('settCouponCode').value = AdminState.settings.promoCouponCode || 'POWERX5';
-  document.getElementById('settPhone').value = AdminState.settings.contactPhone || '+91 98765 43210';
-  document.getElementById('settEmail').value = AdminState.settings.contactEmail || 'support@powerxprotein.com';
+  document.getElementById('settPhone').value = AdminState.settings.contactPhone || '+91 77218 15318';
+  document.getElementById('settEmail').value = AdminState.settings.contactEmail || 'powerxprotein@gmail.com';
   document.getElementById('settThreshold').value = AdminState.settings.freeShippingThreshold || 999;
   document.getElementById('settGst').value = AdminState.settings.gstNumber || '27AABCP1234F1Z8';
-  document.getElementById('settAddress').value = AdminState.settings.storeAddress || 'Shop 14, PowerX Fitness Hub, Station Road, Boisar, Maharashtra 401501';
+  document.getElementById('settAddress').value = AdminState.settings.storeAddress || 'Shop 14, PowerX Fitness Hub, Ostwal, Maan, Boisar, Maharashtra 401501';
 }
 
 function saveStoreSettings() {
